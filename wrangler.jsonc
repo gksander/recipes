@@ -1,0 +1,29 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "recipes",
+	"main": "./src/worker.ts",
+	"compatibility_date": "2026-09-11",
+	"compatibility_flags": ["nodejs_compat"],
+	"workers_dev": true,
+	"routes": [{ "pattern": "recipes.gksander.com", "custom_domain": true }],
+	"observability": {
+		"enabled": true,
+		"traces": { "enabled": true }
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "recipes",
+			"database_id": "c1675983-819c-4995-856c-7d2a6d3bac66",
+			"remote": true
+		}
+	],
+	"r2_buckets": [
+		{
+			"binding": "MEDIA",
+			"bucket_name": "recipes-media",
+			"remote": true
+		}
+	],
+	"triggers": { "crons": ["* * * * *"] }
+}
