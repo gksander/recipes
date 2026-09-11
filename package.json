@@ -9,7 +9,9 @@
   },
 	"scripts": {
 		"dev": "wrangler dev",
-    "build": "astro build",
+		"dev:https": "wrangler dev --local-protocol=https --https-cert-path=.certs/localhost.pem --https-key-path=.certs/localhost-key.pem --infer-origin-from-routes=false",
+		"build": "astro build",
+		"build:local": "EMDASH_SITE_URL=https://localhost:8787 astro build",
     "preview": "astro preview",
 		"start": "wrangler dev",
     "typecheck": "astro check"
