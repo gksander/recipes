@@ -28,6 +28,11 @@ export default defineConfig({
 	cache: {
 		provider: cacheCloudflare(),
 	},
+	routeRules: {
+		// Media stays behind EmDash's access and backup safeguards, while repeat
+		// requests are served from Cloudflare's edge cache.
+		"/_emdash/api/media/file/[...key]": { maxAge: 24 * 60 * 60 },
+	},
 	vite: {
 		server: { https: localHttps },
 		plugins: [tailwindcss()],
