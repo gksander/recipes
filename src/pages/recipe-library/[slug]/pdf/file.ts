@@ -27,7 +27,8 @@ export const GET: APIRoute = async ({ locals, params }) => {
 			"Content-Type": file.contentType || "application/pdf",
 			"Content-Length": String(file.size),
 			"Content-Disposition": `inline; filename*=UTF-8''${encodeURIComponent(filename)}`,
-			"Cache-Control": "private, no-store",
+			"Cache-Control":
+				"public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800",
 			"X-Content-Type-Options": "nosniff",
 		},
 	});

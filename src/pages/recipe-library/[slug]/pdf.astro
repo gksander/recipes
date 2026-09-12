@@ -5,8 +5,16 @@ import Base from "../../../layouts/Base.astro";
 const slug = decodeSlug(Astro.params.slug);
 if (!slug) return new Response("Recipe PDF not found.", { status: 404 });
 
-const { entry, cacheHint } = await getEmDashEntry("recipe_pdfs", slug);
-Astro.cache.set(cacheHint);
+const { entry, cacheHint, isPreview } = await getEmDashEntry("recipe_pdfs", slug);
+if (Astro.cache.enabled) {
+	if (isPreview) {
+		// Preview responses contain draft CMS state.
+		Astro.cache.set(false);
+	} else {
+		Astro.cache.set(cacheHint);
+		Astro.cache.set({ maxAge: 86_400, swr: 604_800 });
+	}
+}
 
 if (!entry?.data.pdf) {
 	return new Response("Recipe PDF not found.", { status: 404 });

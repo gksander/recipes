@@ -13,6 +13,7 @@ interface User {
 	name?: string | null;
 	email?: string | null;
 	avatarUrl?: string | null;
+	isAdmin?: boolean;
 }
 
 interface Props {
@@ -97,6 +98,11 @@ export default function AccountNav({ loginUrl }: Props) {
 						<DropdownMenuItem asChild>
 							<a href="/menu">Menu</a>
 						</DropdownMenuItem>
+						{user.isAdmin && (
+							<DropdownMenuItem asChild>
+								<a href="/_emdash/admin">Admin</a>
+							</DropdownMenuItem>
+						)}
 						<DropdownMenuSeparator />
 						{user ? (
 							<DropdownMenuItem onSelect={signOut}>
@@ -112,13 +118,23 @@ export default function AccountNav({ loginUrl }: Props) {
 			</DropdownMenu>
 
 			{user ? (
-				<button
-					type="button"
-					className="hidden font-bold no-underline hover:text-primary md:inline"
-					onClick={signOut}
-				>
-					Sign out
-				</button>
+				<div className="hidden items-center gap-4 md:flex">
+					{user.isAdmin && (
+						<a
+							className="font-bold no-underline hover:text-primary"
+							href="/_emdash/admin"
+						>
+							Admin
+						</a>
+					)}
+					<button
+						type="button"
+						className="font-bold no-underline hover:text-primary"
+						onClick={signOut}
+					>
+						Sign out
+					</button>
+				</div>
 			) : (
 				<a
 					className="hidden font-bold no-underline hover:text-primary md:inline"

@@ -11,6 +11,7 @@ export const GET: APIRoute = ({ locals }) => {
 				name: locals.user.name,
 				email: locals.user.email,
 				avatarUrl: locals.user.avatarUrl,
+				isAdmin: locals.user.role >= 50,
 			}
 		: null;
 
