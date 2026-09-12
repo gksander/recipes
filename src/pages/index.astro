@@ -59,6 +59,11 @@ const { entries: pdfRecipes, cacheHint: pdfRecipesCacheHint } =
     limit: 2500,
     orderBy: { recipe_date: "desc" },
   });
+const pdfIds = pdfRecipes.map((entry) => entry.data.id);
+const [dietaryByPdf, ingredientsByPdf] = await Promise.all([
+  getTermsForEntries("recipe_pdfs", pdfIds, "dietary"),
+  getTermsForEntries("recipe_pdfs", pdfIds, "ingredient"),
+]);
 const pdfItems = pdfRecipes.map((entry) => ({
   slug: entry.id,
   title: entry.data.title,
@@ -71,6 +76,9 @@ const pdfItems = pdfRecipes.map((entry) => ({
         alt: entry.data.preview_image.alt ?? "",
       }
     : null,
+  dietary: dietaryByPdf.get(entry.data.id)?.map((term) => term.slug) ?? [],
+  ingredients:
+    ingredientsByPdf.get(entry.data.id)?.map((term) => term.slug) ?? [],
 }));
 const { siteTitle, siteTagline } = resolveStarterSiteIdentity(settings);
 

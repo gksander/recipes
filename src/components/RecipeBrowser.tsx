@@ -66,6 +66,8 @@ type PdfListItem = {
 	title: string;
 	sourceFilename: string;
 	image: ImageValue | null;
+	dietary: string[];
+	ingredients: string[];
 };
 
 interface Props {
@@ -167,8 +169,10 @@ export default function RecipeBrowser({
 		return recipes.filter(
 			(recipe) =>
 				(!meal || recipe.mealTypes.includes(meal)) &&
-				dietary.every((term) => recipe.dietary.includes(term)) &&
-				ingredient.every((term) => recipe.ingredients.includes(term)) &&
+				(!dietary.length ||
+					dietary.some((term) => recipe.dietary.includes(term))) &&
+				(!ingredient.length ||
+					ingredient.some((term) => recipe.ingredients.includes(term))) &&
 				(!search ||
 					`${recipe.title} ${recipe.summary ?? ""}`
 						.toLowerCase()
@@ -177,14 +181,20 @@ export default function RecipeBrowser({
 	}, [debouncedQuery, dietary, ingredient, meal, recipes]);
 
 	const filteredPdfs = useMemo(() => {
-		if (meal || dietary.length || ingredient.length) return [];
+		// PDFs participate in dietary and ingredient filtering, but do not have
+		// the meal-type taxonomy used by the recipe collection.
+		if (meal) return [];
 		const search = debouncedQuery.trim().toLowerCase();
 		return pdfs.filter(
 			(pdf) =>
-				!search ||
-				`${pdf.title} ${pdf.sourceFilename}`.toLowerCase().includes(search),
+				(!dietary.length ||
+					dietary.some((term) => pdf.dietary.includes(term))) &&
+				(!ingredient.length ||
+					ingredient.some((term) => pdf.ingredients.includes(term))) &&
+				(!search ||
+					`${pdf.title} ${pdf.sourceFilename}`.toLowerCase().includes(search)),
 		);
-	}, [debouncedQuery, dietary.length, ingredient.length, meal, pdfs]);
+	}, [debouncedQuery, dietary, ingredient, meal, pdfs]);
 
 	const items = useMemo(
 		() => [
@@ -244,32 +254,6 @@ export default function RecipeBrowser({
 							placeholder="Title or summary"
 						/>
 					</label>
-					<label className="block text-base font-extrabold">
-						Meal type
-						<Select
-							value={meal || "any"}
-							onValueChange={(value) =>
-								setMeal(value === "any" ? "" : (value ?? ""))
-							}
-						>
-							<SelectTrigger
-								className="mt-2 h-12 w-full text-base font-normal sm:mt-3"
-								aria-label="Meal type"
-							>
-								<SelectValue />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectGroup>
-									<SelectItem value="any">Any meal type</SelectItem>
-									{mealTypes.map((term) => (
-										<SelectItem key={term.slug} value={term.slug}>
-											{term.label}
-										</SelectItem>
-									))}
-								</SelectGroup>
-							</SelectContent>
-						</Select>
-					</label>
 					<div>
 						<label
 							className="block text-base font-extrabold"
@@ -295,6 +279,32 @@ export default function RecipeBrowser({
 							onChange={setIngredient}
 							placeholder="Any ingredient"
 						/>
+					</label>
+					<label className="block text-base font-extrabold">
+						Meal type
+						<Select
+							value={meal || "any"}
+							onValueChange={(value) =>
+								setMeal(value === "any" ? "" : (value ?? ""))
+							}
+						>
+							<SelectTrigger
+								className="mt-2 h-12 w-full text-base font-normal sm:mt-3"
+								aria-label="Meal type"
+							>
+								<SelectValue />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectGroup>
+									<SelectItem value="any">Any meal type</SelectItem>
+									{mealTypes.map((term) => (
+										<SelectItem key={term.slug} value={term.slug}>
+											{term.label}
+										</SelectItem>
+									))}
+								</SelectGroup>
+							</SelectContent>
+						</Select>
 					</label>
 				</Card>
 			</aside>

@@ -78,6 +78,7 @@ export default defineConfig({
 		}),
 		emdash({
 			siteUrl,
+			toolbar: false,
 			database: d1({ binding: "DB" }),
 			storage: r2({ binding: "MEDIA" }),
 			plugins: [
