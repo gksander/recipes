@@ -1,6 +1,6 @@
 ---
 import { decodeSlug, getEmDashEntry, getSeoMeta, getSiteSettingsWithCacheHint } from "emdash";
-import { Image, PortableText } from "emdash/ui";
+import { PortableText } from "emdash/ui";
 import Base from "../../layouts/Base.astro";
 import { resolveStarterSiteIdentity } from "../../utils/site-identity";
 
@@ -29,14 +29,18 @@ const metadata = [
 	recipe.data.rest_minutes && `${recipe.data.rest_minutes} min rest`,
 	recipe.data.servings && `${recipe.data.servings} ${recipe.data.yield_unit || "servings"}`,
 ].filter(Boolean);
+const featuredImage = recipe.data.featured_image;
+const featuredImageSrc = featuredImage
+	? featuredImage.src ?? `/_emdash/api/media/file/${encodeURIComponent(featuredImage.meta?.storageKey ?? featuredImage.id)}`
+	: null;
 ---
 
 <Base title={seo.title} pageTitle={seo.ogTitle} description={seo.description ?? recipe.data.summary} canonical={seo.canonical} image={seo.ogImage} content={{ collection: "recipes", id: recipe.data.id, slug }}>
 	<article class="mx-auto max-w-3xl">
 		<h1 class="text-4xl font-bold tracking-tight sm:text-5xl" {...recipe.edit.title}>{recipe.data.title}</h1>
-		{recipe.data.featured_image && (
+		{featuredImage && featuredImageSrc && (
 			<div class="my-6 h-[clamp(14rem,45vw,28rem)] overflow-hidden [&_img]:h-full [&_img]:w-full [&_img]:object-cover" {...recipe.edit.featured_image}>
-				<Image image={recipe.data.featured_image} />
+				<img src={featuredImageSrc} alt={featuredImage.alt ?? ""} decoding="async" />
 			</div>
 		)}
 		{recipe.data.summary && <p class="text-lg leading-relaxed" {...recipe.edit.summary}>{recipe.data.summary}</p>}

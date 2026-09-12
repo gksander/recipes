@@ -42,6 +42,8 @@
 		"@astrojs/check": "^0.9.7",
 		"@biomejs/biome": "^2.5.13",
 		"@tailwindcss/vite": "^4.3.3",
+		"highlight.js": "11.11.2",
+		"lowlight": "^3.3.0",
 		"shadcn": "^4.21.0",
 		"tailwindcss": "^4.3.3",
 		"wrangler": "^4.131.0"
