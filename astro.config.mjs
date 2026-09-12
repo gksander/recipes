@@ -1,8 +1,10 @@
 import cloudflare from "@astrojs/cloudflare";
 import { cloudflareEmail } from "@emdash-cms/cloudflare/plugins";
 import react from "@astrojs/react";
+import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "astro/config";
 import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { d1, r2 } from "@emdash-cms/cloudflare";
 import emdash from "emdash/astro";
 
@@ -23,6 +25,12 @@ export default defineConfig({
 	}),
 	vite: {
 		server: { https: localHttps },
+		plugins: [tailwindcss()],
+		resolve: {
+			alias: {
+				"@": fileURLToPath(new URL("./src", import.meta.url)),
+			},
+		},
 	},
 	image: {
 		layout: "constrained",

@@ -42,12 +42,13 @@ const tags = [...tagLabels].sort(([, a], [, b]) => a.localeCompare(b));
 				{entries.map((entry) => {
 					const entryTags = tagsByRecipe.get(entry.data.id) ?? [];
 					const pdfUrl = entry.data.pdf ? `/recipe-library/${encodeURIComponent(entry.id)}/pdf` : "";
-					return <li data-tags={entryTags.map((tag) => tag.slug).join(" ")}>
-						<button type="button" class="recipe" data-title={entry.data.title} data-pdf={pdfUrl}>
+					const titleEditRef = JSON.stringify({ collection: "recipe_pdfs", id: entry.data.id, field: "title" });
+					return <li class="recipe" data-tags={entryTags.map((tag) => tag.slug).join(" ")}>
+						<button type="button" class="recipe-open" data-title={entry.data.title} data-pdf={pdfUrl} aria-label={`Open ${entry.data.title}`}>
 							{entry.data.preview_image && <Image image={entry.data.preview_image} widths={[320]} sizes="(max-width: 40rem) 100vw, 20rem" />}
-							<span>{entry.data.title}</span>
-							{entryTags.length > 0 && <small>{entryTags.map((tag) => tag.label).join(" · ")}</small>}
 						</button>
+						<span class="recipe-title" data-emdash-ref={titleEditRef}>{entry.data.title}</span>
+						{entryTags.length > 0 && <small>{entryTags.map((tag) => tag.label).join(" · ")}</small>}
 					</li>;
 				})}
 			</ul>
@@ -74,7 +75,7 @@ const tags = [...tagLabels].sort(([, a], [, b]) => a.localeCompare(b));
 			});
 		}));
 
-		document.querySelectorAll<HTMLButtonElement>(".recipe[data-pdf]").forEach((button) => button.addEventListener("click", () => {
+		document.querySelectorAll<HTMLButtonElement>(".recipe-open[data-pdf]").forEach((button) => button.addEventListener("click", () => {
 			if (!dialog || !frame || !title || !button.dataset.pdf) return;
 			title.textContent = button.dataset.title || "Recipe PDF";
 			frame.src = button.dataset.pdf;
@@ -88,14 +89,16 @@ const tags = [...tagLabels].sort(([, a], [, b]) => a.localeCompare(b));
 	<style>
 		.library { max-width: 70rem; margin: 0 auto; padding: 2rem 1rem; }
 		.filters { display: flex; flex-wrap: wrap; gap: .5rem; margin: 1.5rem 0; }
-		.filters button, .recipe, .viewer-bar button { font: inherit; }
+		.filters button, .recipe-open, .viewer-bar button { font: inherit; }
 		.filters button { border: 1px solid currentColor; border-radius: 999px; background: transparent; padding: .35rem .7rem; cursor: pointer; }
 		.filters .is-active { background: currentColor; color: Canvas; }
 		.recipes { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: .75rem; padding: 0; list-style: none; }
-		.recipe { width: 100%; min-height: 6rem; text-align: left; padding: 1rem; border: 1px solid #bbb; border-radius: .5rem; background: transparent; cursor: pointer; }
-		.recipe:hover, .recipe:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
-		.recipe span, .recipe small { display: block; }
-		.recipe :global(img) { display: block; width: 100%; aspect-ratio: 0.7; object-fit: cover; margin: -.25rem 0 .75rem; border-radius: .25rem; }
+		.recipe { min-height: 6rem; padding: 1rem; border: 1px solid #bbb; border-radius: .5rem; }
+		.recipe-open { display: block; width: 100%; padding: 0; border: 0; background: transparent; cursor: pointer; }
+		.recipe-open:hover, .recipe-open:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+		.recipe-title, .recipe small { display: block; }
+		.recipe-title { margin-top: .75rem; }
+		.recipe :global(img) { display: block; width: 100%; aspect-ratio: 0.7; object-fit: cover; border-radius: .25rem; }
 		.recipe small { margin-top: .5rem; opacity: .7; }
 		dialog { width: min(96vw, 72rem); height: min(92vh, 62rem); padding: 0; border: 0; }
 		dialog::backdrop { background: rgb(0 0 0 / .65); }

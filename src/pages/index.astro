@@ -14,7 +14,13 @@ if (Astro.cache?.enabled) Astro.cache.set(cacheHint);
 ---
 
 <Base title={siteTitle} description={siteTagline}>
-	{!Astro.locals.user && <p><a href={recipeLibraryLoginUrl(Astro.url)}>Sign in</a> to access the recipe PDF library.</p>}
+	{Astro.locals.user ? (
+		<div class="account-actions">
+			<span>You are signed in. </span><button type="button" class="sign-out-button" id="sign-out">Sign out</button>
+		</div>
+	) : (
+		<p><a href={recipeLibraryLoginUrl(Astro.url)}>Sign in</a> to access the recipe PDF library.</p>
+	)}
 	<h1>Recent recipes</h1>
 	{recipes.length === 0 ? (
 		<p>No recipes yet. <a href="/_emdash/admin/content/recipes/new">Create one</a>.</p>
@@ -33,3 +39,36 @@ if (Astro.cache?.enabled) Astro.cache.set(cacheHint);
 		</ul>
 	)}
 </Base>
+
+<style>
+	.account-actions {
+		margin-block: 1em;
+	}
+
+	.sign-out-button {
+		appearance: none;
+		border: 0;
+		padding: 0;
+		background: none;
+		color: LinkText;
+		font: inherit;
+		text-decoration: underline;
+		cursor: pointer;
+	}
+</style>
+
+<script>
+	document.querySelector<HTMLButtonElement>("#sign-out")?.addEventListener("click", async () => {
+		const response = await fetch("/_emdash/api/auth/logout?redirect=/", {
+			method: "POST",
+			headers: { "X-EmDash-Request": "1" },
+		});
+
+		if (response.ok) {
+			window.location.assign("/");
+			return;
+		}
+
+		window.alert("Unable to sign out. Please try again.");
+	});
+</script>
