@@ -103,7 +103,6 @@ async function put(tokenValue, record, current) {
 		},
 		body: JSON.stringify({
 			_rev: current._rev,
-			status: current.status === "published" ? "published" : current.status,
 			taxonomies: payload(record),
 		}),
 	});

@@ -1,14 +1,9 @@
 import type { APIRoute } from "astro";
 import { decodeSlug, getEmDashEntry } from "emdash";
-import { hasRecipeLibraryAccess } from "../../../utils/recipe-library-auth";
 
 export const prerender = false;
 
 export const GET: APIRoute = async ({ locals, params }) => {
-	if (!hasRecipeLibraryAccess(locals.user)) {
-		return new Response("Sign in to view this recipe PDF.", { status: 401 });
-	}
-
 	const slug = decodeSlug(params.slug);
 	if (!slug) return new Response("Recipe PDF not found.", { status: 404 });
 

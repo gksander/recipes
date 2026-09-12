@@ -7,7 +7,6 @@ import {
 } from "emdash";
 import RecipeBrowser from "../components/RecipeBrowser";
 import Base from "../layouts/Base.astro";
-import { hasRecipeLibraryAccess } from "../utils/recipe-library-auth";
 import { resolveStarterSiteIdentity } from "../utils/site-identity";
 
 const values = (key: string) => [
@@ -61,15 +60,12 @@ const recipeItems = recipes.map((entry) => ({
   ingredients:
     ingredientsByRecipe.get(entry.data.id)?.map((term) => term.slug) ?? [],
 }));
-const { entries: pdfRecipes } = hasRecipeLibraryAccess(
-  Astro.locals.user,
-)
-  ? await getEmDashCollection("recipe_pdfs", {
-      status: "published",
-      limit: 2500,
-      orderBy: { recipe_date: "desc" },
-    })
-  : { entries: [] };
+const { entries: pdfRecipes, cacheHint: pdfRecipesCacheHint } =
+  await getEmDashCollection("recipe_pdfs", {
+    status: "published",
+    limit: 2500,
+    orderBy: { recipe_date: "desc" },
+  });
 const pdfItems = pdfRecipes.map((entry) => ({
   slug: entry.id,
   title: entry.data.title,
@@ -87,10 +83,11 @@ const { siteTitle, siteTagline } = resolveStarterSiteIdentity(settings);
 
 if (Astro.cache.enabled) {
   if (Astro.locals.user) {
-    // This response includes recipe-library data and serialized user state.
+    // The header and conditional links include session-specific state.
     Astro.cache.set(false);
   } else {
     Astro.cache.set(recipesCacheHint);
+    Astro.cache.set(pdfRecipesCacheHint);
     Astro.cache.set(mealTypesCacheHint);
     Astro.cache.set(dietaryTermsCacheHint);
     Astro.cache.set(ingredientTermsCacheHint);

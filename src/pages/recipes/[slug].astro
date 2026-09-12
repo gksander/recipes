@@ -23,17 +23,43 @@ const { siteTitle } = resolveStarterSiteIdentity(settings);
 const seo = getSeoMeta(recipe, { siteTitle, siteUrl: Astro.url.origin, path: Astro.url.pathname.replace(/\/$/, "") });
 const dietary = recipe.data.terms?.dietary ?? [];
 const mealTypes = recipe.data.terms?.meal_type ?? [];
+const metadata = [
+	recipe.data.prep_minutes && `${recipe.data.prep_minutes} min prep`,
+	recipe.data.cook_minutes && `${recipe.data.cook_minutes} min cook`,
+	recipe.data.rest_minutes && `${recipe.data.rest_minutes} min rest`,
+	recipe.data.servings && `${recipe.data.servings} ${recipe.data.yield_unit || "servings"}`,
+].filter(Boolean);
 ---
 
 <Base title={seo.title} pageTitle={seo.ogTitle} description={seo.description ?? recipe.data.summary} canonical={seo.canonical} image={seo.ogImage} content={{ collection: "recipes", id: recipe.data.id, slug }}>
-	<article>
-		{recipe.data.featured_image && <div {...recipe.edit.featured_image}><Image image={recipe.data.featured_image} /></div>}
-		<h1 {...recipe.edit.title}>{recipe.data.title}</h1>
-		{recipe.data.summary && <p {...recipe.edit.summary}>{recipe.data.summary}</p>}
-		<p>{recipe.data.prep_minutes && `${recipe.data.prep_minutes} min prep`}{recipe.data.prep_minutes && recipe.data.cook_minutes && " · "}{recipe.data.cook_minutes && `${recipe.data.cook_minutes} min cook`}</p>
-		{mealTypes.length > 0 && <p>{mealTypes.map((term) => term.label).join(", ")}</p>}
-		<section><h2>Ingredients</h2><PortableText value={recipe.data.ingredients} /></section>
-		<section><h2>Instructions</h2><PortableText value={recipe.data.instructions} /></section>
+	<article class="mx-auto max-w-3xl">
+		<h1 class="text-4xl font-bold tracking-tight sm:text-5xl" {...recipe.edit.title}>{recipe.data.title}</h1>
+		{recipe.data.featured_image && (
+			<div class="my-6 h-[clamp(14rem,45vw,28rem)] overflow-hidden [&_img]:h-full [&_img]:w-full [&_img]:object-cover" {...recipe.edit.featured_image}>
+				<Image image={recipe.data.featured_image} />
+			</div>
+		)}
+		{recipe.data.summary && <p class="text-lg leading-relaxed" {...recipe.edit.summary}>{recipe.data.summary}</p>}
+		{(metadata.length > 0 || mealTypes.length > 0) && (
+			<dl class="my-6 space-y-2" aria-label="Recipe details">
+				{metadata.length > 0 && <div class="flex gap-2"><dt class="font-bold">Details</dt><dd>{metadata.join(" · ")}</dd></div>}
+				{mealTypes.length > 0 && <div class="flex gap-2"><dt class="font-bold">Meal type</dt><dd>{mealTypes.map((term) => term.label).join(", ")}</dd></div>}
+			</dl>
+		)}
+		<section class="mt-10">
+			<h2 class="text-2xl font-bold">Ingredients</h2>
+			<div class="mt-4 space-y-4 leading-relaxed [&_ol]:list-decimal [&_ol]:space-y-2 [&_ol]:pl-6 [&_p]:mt-4 [&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:pl-6">
+				<PortableText value={recipe.data.ingredients} />
+			</div>
+		</section>
+		{recipe.data.instructions && (
+			<section class="mt-10">
+				<h2 class="text-2xl font-bold">Instructions</h2>
+				<div class="mt-4 space-y-4 leading-relaxed [&_ol]:list-decimal [&_ol]:space-y-2 [&_ol]:pl-6 [&_p]:mt-4 [&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:pl-6">
+					<PortableText value={recipe.data.instructions} />
+				</div>
+			</section>
+		)}
 		{dietary.length > 0 && <p>{dietary.map((term) => <a href={`/dietary/${term.slug}`}>{term.label}</a>)}</p>}
 		{recipe.data.source_url && <p>Source: <a href={recipe.data.source_url} rel="nofollow external">{recipe.data.source_name || recipe.data.source_url}</a></p>}
 	</article>

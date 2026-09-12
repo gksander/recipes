@@ -2,11 +2,6 @@
 import { getEmDashCollection, getTermsForEntries } from "emdash";
 import { Image } from "emdash/ui";
 import Base from "../../layouts/Base.astro";
-import { hasRecipeLibraryAccess, recipeLibraryLoginUrl } from "../../utils/recipe-library-auth";
-
-if (!hasRecipeLibraryAccess(Astro.locals.user)) {
-	return Astro.redirect(recipeLibraryLoginUrl(Astro.url));
-}
 
 const { entries, cacheHint } = await getEmDashCollection("recipe_pdfs", {
 	status: "published",
@@ -23,7 +18,7 @@ for (const terms of tagsByRecipe.values()) {
 const tags = [...tagLabels].sort(([, a], [, b]) => a.localeCompare(b));
 ---
 
-<Base title="Recipe library" description="Original recipe PDFs for subscribers.">
+<Base title="Recipe library" description="Original recipe PDFs for everyone.">
 	<section class="library">
 		<header>
 			<h1>Recipe library</h1>
