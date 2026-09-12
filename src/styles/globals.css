@@ -206,6 +206,11 @@
 }
 
 @layer base {
+	html,
+	body {
+		overflow-x: hidden;
+	}
+
 	body {
 		letter-spacing: var(--tracking-normal);
 	}
@@ -214,13 +219,14 @@
 .site-container {
 	width: 100%;
 	max-width: 80rem;
+	min-width: 0;
 	margin-inline: auto;
-	padding-inline: 1rem;
+	padding-inline: 0.75rem;
 }
 
 @media (min-width: 40rem) {
 	.site-container {
-		padding-inline: 2rem;
+		padding-inline: 1.25rem;
 	}
 }
 

@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Menu as MenuIcon } from "lucide-react";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuGroup,
 	DropdownMenuItem,
-	DropdownMenuLabel,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -22,16 +21,6 @@ interface Props {
 
 let cachedUser: User | null | undefined;
 let sessionRequest: Promise<User | null> | undefined;
-
-function getInitials(name: string) {
-	return name
-		.split(/[\s@._-]+/)
-		.filter(Boolean)
-		.slice(0, 2)
-		.map((part) => part[0])
-		.join("")
-		.toUpperCase();
-}
 
 function getSession() {
 	if (cachedUser !== undefined) return Promise.resolve(cachedUser);
@@ -71,49 +60,73 @@ export default function AccountNav({ loginUrl }: Props) {
 	}
 
 	if (user === undefined) {
-		return <span className="block size-10" aria-label="Loading account" />;
-	}
-
-	if (!user) {
 		return (
-			<a className="font-bold no-underline" href={loginUrl}>
-				Sign in
-			</a>
+			<div className="flex items-center">
+				<span className="hidden md:inline">Sign in</span>
+				<span
+					className="inline-flex items-center gap-2 md:hidden"
+					aria-label="Loading account"
+				>
+					<span>Menu</span>
+					<MenuIcon aria-hidden="true" size={20} />
+				</span>
+			</div>
 		);
 	}
 
-	const profileName = user.name || user.email || "Account";
-	const initials = getInitials(profileName);
+	const authAction = user ? "Sign out" : "Sign in";
 
 	return (
-		<DropdownMenu>
-			<DropdownMenuTrigger asChild>
+		<>
+			<DropdownMenu>
+				<DropdownMenuTrigger asChild>
+					<button
+						type="button"
+						className="inline-flex items-center gap-2 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 md:hidden"
+						aria-label="Open navigation menu"
+					>
+						<span>Menu</span>
+						<MenuIcon aria-hidden="true" size={20} />
+					</button>
+				</DropdownMenuTrigger>
+				<DropdownMenuContent align="end">
+					<DropdownMenuGroup>
+						<DropdownMenuItem asChild>
+							<a href="/">Recipes</a>
+						</DropdownMenuItem>
+						<DropdownMenuItem asChild>
+							<a href="/menu">Menu</a>
+						</DropdownMenuItem>
+						<DropdownMenuSeparator />
+						{user ? (
+							<DropdownMenuItem onSelect={signOut}>
+								{authAction}
+							</DropdownMenuItem>
+						) : (
+							<DropdownMenuItem asChild>
+								<a href={loginUrl}>{authAction}</a>
+							</DropdownMenuItem>
+						)}
+					</DropdownMenuGroup>
+				</DropdownMenuContent>
+			</DropdownMenu>
+
+			{user ? (
 				<button
 					type="button"
-					className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-					aria-label={`Open ${profileName} profile menu`}
+					className="hidden font-bold no-underline hover:text-primary md:inline"
+					onClick={signOut}
 				>
-					<Avatar
-						size="lg"
-						className="bg-foreground text-xs font-extrabold text-background"
-					>
-						{user.avatarUrl && <AvatarImage src={user.avatarUrl} alt="" />}
-						<AvatarFallback className="bg-foreground text-background">
-							{initials}
-						</AvatarFallback>
-					</Avatar>
+					Sign out
 				</button>
-			</DropdownMenuTrigger>
-			<DropdownMenuContent align="end">
-				<DropdownMenuGroup>
-					<DropdownMenuLabel>{profileName}</DropdownMenuLabel>
-					<DropdownMenuSeparator />
-					<DropdownMenuItem asChild>
-						<a href="/_emdash/admin">Admin dashboard</a>
-					</DropdownMenuItem>
-					<DropdownMenuItem onSelect={signOut}>Sign out</DropdownMenuItem>
-				</DropdownMenuGroup>
-			</DropdownMenuContent>
-		</DropdownMenu>
+			) : (
+				<a
+					className="hidden font-bold no-underline hover:text-primary md:inline"
+					href={loginUrl}
+				>
+					Sign in
+				</a>
+			)}
+		</>
 	);
 }

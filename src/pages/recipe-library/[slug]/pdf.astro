@@ -1,0 +1,51 @@
+---
+import { decodeSlug, getEmDashEntry } from "emdash";
+import Base from "../../../layouts/Base.astro";
+
+const slug = decodeSlug(Astro.params.slug);
+if (!slug) return new Response("Recipe PDF not found.", { status: 404 });
+
+const { entry, cacheHint } = await getEmDashEntry("recipe_pdfs", slug);
+Astro.cache.set(cacheHint);
+
+if (!entry?.data.pdf) {
+	return new Response("Recipe PDF not found.", { status: 404 });
+}
+
+const title = String(entry.data.title);
+const pdfUrl = `/recipe-library/${encodeURIComponent(entry.id)}/pdf/file`;
+---
+
+<Base title={title} description={`View the recipe PDF for ${title}.`}>
+	<section class="pdf-viewer">
+		<iframe title={title} src={pdfUrl}></iframe>
+	</section>
+</Base>
+
+<script>
+	const iframe = document.querySelector<HTMLIFrameElement>(".pdf-viewer iframe");
+	const header = document.querySelector("body > header");
+
+	const resizeViewer = () => {
+		if (!iframe) return;
+		const headerHeight = header?.getBoundingClientRect().height ?? 0;
+		iframe.style.height = `calc(100svh - ${headerHeight}px)`;
+	};
+
+	resizeViewer();
+	window.addEventListener("resize", resizeViewer);
+</script>
+
+<style>
+	.pdf-viewer {
+		width: calc(100% + 2rem);
+		margin-inline: -1rem;
+	}
+
+	iframe {
+		display: block;
+		width: 100%;
+		height: calc(100svh - 4rem);
+		border: 0;
+	}
+</style>

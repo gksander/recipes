@@ -222,12 +222,12 @@ export default function RecipeBrowser({
 	};
 
 	return (
-		<div className="grid gap-8 lg:grid-cols-[17rem_minmax(0,1fr)]">
+		<div className="grid min-w-0 gap-8 lg:grid-cols-[17rem_minmax(0,1fr)]">
 			<aside
-				className="recipe-filter-rail self-start lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto"
+				className="recipe-filter-rail min-w-0 self-start lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto"
 				aria-label="Filter recipes"
 			>
-				<Card className="gap-4 rounded-3xl p-5 shadow-lg sm:gap-6">
+				<Card className="min-w-0 gap-4 rounded-3xl p-5 shadow-lg sm:gap-6">
 					<div className="flex items-start justify-between gap-3">
 						<div>
 							<CardTitle className="text-2xl font-black tracking-[-.04em]">
@@ -308,9 +308,9 @@ export default function RecipeBrowser({
 					</label>
 				</Card>
 			</aside>
-			<div>
+			<div className="min-w-0">
 				{visibleItems.length ? (
-					<ul className="m-0 grid grid-cols-1 gap-5 p-0 sm:grid-cols-2 xl:grid-cols-3">
+					<ul className="m-0 grid min-w-0 grid-cols-1 gap-5 p-0 sm:grid-cols-2 xl:grid-cols-3">
 						{visibleItems.map((item) =>
 							item.type === "recipe" ? (
 								<li key={item.entry.slug}>
@@ -318,7 +318,7 @@ export default function RecipeBrowser({
 										className="block h-full no-underline"
 										href={`/recipes/${item.entry.slug}`}
 									>
-										<Card className="h-full gap-0 overflow-hidden py-0 transition-shadow hover:shadow-md">
+										<Card className="h-full min-w-0 gap-0 overflow-hidden py-0 transition-shadow hover:shadow-md">
 											<CardHeader className="gap-0 p-0">
 												{item.entry.image ? (
 													<img
@@ -367,7 +367,7 @@ export default function RecipeBrowser({
 										className="block h-full no-underline"
 										href={`/recipe-library/${item.entry.slug}/pdf`}
 									>
-										<Card className="h-full gap-0 overflow-hidden py-0 transition-shadow hover:shadow-md">
+										<Card className="h-full min-w-0 gap-0 overflow-hidden py-0 transition-shadow hover:shadow-md">
 											<CardHeader className="gap-0 p-0">
 												{item.entry.image ? (
 													<img

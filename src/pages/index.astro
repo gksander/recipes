@@ -47,9 +47,15 @@ const recipeItems = recipes.map((entry) => ({
       }
     : null,
   mealTypes: mealsByRecipe.get(entry.data.id)?.map((term) => term.slug) ?? [],
-  mealTypeLabels: mealsByRecipe.get(entry.data.id)?.map((term) => ({ slug: term.slug, label: term.label })) ?? [],
+  mealTypeLabels:
+    mealsByRecipe
+      .get(entry.data.id)
+      ?.map((term) => ({ slug: term.slug, label: term.label })) ?? [],
   dietary: dietaryByRecipe.get(entry.data.id)?.map((term) => term.slug) ?? [],
-  dietaryLabels: dietaryByRecipe.get(entry.data.id)?.map((term) => ({ slug: term.slug, label: term.label })) ?? [],
+  dietaryLabels:
+    dietaryByRecipe
+      .get(entry.data.id)
+      ?.map((term) => ({ slug: term.slug, label: term.label })) ?? [],
   ingredients:
     ingredientsByRecipe.get(entry.data.id)?.map((term) => term.slug) ?? [],
 }));
@@ -95,18 +101,15 @@ if (Astro.cache.enabled) {
 
 <Base title={siteTitle} description={siteTagline}>
   <div class="pb-20">
-    <section class="my-2 mb-12 flex min-h-80 items-center overflow-hidden rounded-3xl bg-[url('/images/recipe-hero.png')] bg-cover bg-center md:mb-20">
+    <section class="my-2 mb-12 flex min-h-80 items-center overflow-hidden rounded-3xl bg-[url('/images/recipe-hero-salmon.png')] bg-cover bg-center md:mb-20">
       <div class="max-w-xl bg-linear-to-r from-white via-background/75 to-transparent p-8 sm:p-14">
-        <span class="font-extrabold tracking-widest text-primary uppercase">
-          Recipes for every day
-        </span>
         <h1 class="my-3 text-5xl leading-[.93] font-black tracking-[-.07em] sm:text-7xl">
-          Cook something
+          Cook shit
           <br />
           <em class="not-italic text-primary">you’ll love.</em>
         </h1>
         <p class="text-lg text-muted-foreground">
-          Dependable recipes, gathered in one delicious place.
+          Recipes collected, crafted, and curated.
         </p>
       </div>
     </section>

@@ -22,7 +22,7 @@ const tags = [...tagLabels].sort(([, a], [, b]) => a.localeCompare(b));
 	<section class="library">
 		<header>
 			<h1>Recipe library</h1>
-			<p>{entries.length} original recipe PDFs. Filter by a tag, then open a recipe without leaving this page.</p>
+			<p>{entries.length} original recipe PDFs. Filter by a tag, then open a recipe in the inline viewer.</p>
 		</header>
 
 		{tags.length > 0 && (
@@ -39,9 +39,9 @@ const tags = [...tagLabels].sort(([, a], [, b]) => a.localeCompare(b));
 					const pdfUrl = entry.data.pdf ? `/recipe-library/${encodeURIComponent(entry.id)}/pdf` : "";
 					const titleEditRef = JSON.stringify({ collection: "recipe_pdfs", id: entry.data.id, field: "title" });
 					return <li class="recipe" data-tags={entryTags.map((tag) => tag.slug).join(" ")}>
-						<button type="button" class="recipe-open" data-title={entry.data.title} data-pdf={pdfUrl} aria-label={`Open ${entry.data.title}`}>
+						<a class="recipe-open" href={pdfUrl} aria-label={`Open ${entry.data.title}`}>
 							{entry.data.preview_image && <Image image={entry.data.preview_image} widths={[320]} sizes="(max-width: 40rem) 100vw, 20rem" />}
-						</button>
+						</a>
 						<span class="recipe-title" data-emdash-ref={titleEditRef}>{entry.data.title}</span>
 						{entryTags.length > 0 && <small>{entryTags.map((tag) => tag.label).join(" · ")}</small>}
 					</li>;
@@ -50,15 +50,7 @@ const tags = [...tagLabels].sort(([, a], [, b]) => a.localeCompare(b));
 		)}
 	</section>
 
-	<dialog id="pdf-viewer" aria-labelledby="pdf-title">
-		<div class="viewer-bar"><strong id="pdf-title"></strong><button type="button" data-close>Close</button></div>
-		<iframe title="Recipe PDF" id="pdf-frame"></iframe>
-	</dialog>
-
 	<script>
-		const dialog = document.querySelector<HTMLDialogElement>("#pdf-viewer");
-		const frame = document.querySelector<HTMLIFrameElement>("#pdf-frame");
-		const title = document.querySelector<HTMLElement>("#pdf-title");
 		const filterButtons = document.querySelectorAll<HTMLButtonElement>(".filters [data-tag]");
 		const recipes = document.querySelectorAll<HTMLLIElement>(".recipes li");
 
@@ -70,34 +62,21 @@ const tags = [...tagLabels].sort(([, a], [, b]) => a.localeCompare(b));
 			});
 		}));
 
-		document.querySelectorAll<HTMLButtonElement>(".recipe-open[data-pdf]").forEach((button) => button.addEventListener("click", () => {
-			if (!dialog || !frame || !title || !button.dataset.pdf) return;
-			title.textContent = button.dataset.title || "Recipe PDF";
-			frame.src = button.dataset.pdf;
-			dialog.showModal();
-		}));
-
-		dialog?.querySelector("[data-close]")?.addEventListener("click", () => dialog.close());
-		dialog?.addEventListener("close", () => { if (frame) frame.src = "about:blank"; });
 	</script>
 
 	<style>
 		.library { max-width: 70rem; margin: 0 auto; padding: 2rem 1rem; }
 		.filters { display: flex; flex-wrap: wrap; gap: .5rem; margin: 1.5rem 0; }
-		.filters button, .recipe-open, .viewer-bar button { font: inherit; }
+		.filters button, .recipe-open { font: inherit; }
 		.filters button { border: 1px solid currentColor; border-radius: 999px; background: transparent; padding: .35rem .7rem; cursor: pointer; }
 		.filters .is-active { background: currentColor; color: Canvas; }
 		.recipes { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: .75rem; padding: 0; list-style: none; }
 		.recipe { min-height: 6rem; padding: 1rem; border: 1px solid #bbb; border-radius: .5rem; }
-		.recipe-open { display: block; width: 100%; padding: 0; border: 0; background: transparent; cursor: pointer; }
+		.recipe-open { display: block; width: 100%; }
 		.recipe-open:hover, .recipe-open:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
 		.recipe-title, .recipe small { display: block; }
 		.recipe-title { margin-top: .75rem; }
 		.recipe :global(img) { display: block; width: 100%; aspect-ratio: 0.7; object-fit: cover; border-radius: .25rem; }
 		.recipe small { margin-top: .5rem; opacity: .7; }
-		dialog { width: min(96vw, 72rem); height: min(92vh, 62rem); padding: 0; border: 0; }
-		dialog::backdrop { background: rgb(0 0 0 / .65); }
-		.viewer-bar { display: flex; justify-content: space-between; gap: 1rem; align-items: center; padding: .75rem 1rem; }
-		iframe { width: 100%; height: calc(100% - 3.25rem); border: 0; }
 	</style>
 </Base>
