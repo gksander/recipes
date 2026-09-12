@@ -82,18 +82,13 @@ const pdfItems = pdfRecipes.map((entry) => ({
 const { siteTitle, siteTagline } = resolveStarterSiteIdentity(settings);
 
 if (Astro.cache.enabled) {
-  if (Astro.locals.user) {
-    // The header and conditional links include session-specific state.
-    Astro.cache.set(false);
-  } else {
-    Astro.cache.set(recipesCacheHint);
-    Astro.cache.set(pdfRecipesCacheHint);
-    Astro.cache.set(mealTypesCacheHint);
-    Astro.cache.set(dietaryTermsCacheHint);
-    Astro.cache.set(ingredientTermsCacheHint);
-    Astro.cache.set(settingsCacheHint);
-    Astro.cache.set({ maxAge: 86_400, swr: 604_800 });
-  }
+  Astro.cache.set(recipesCacheHint);
+  Astro.cache.set(pdfRecipesCacheHint);
+  Astro.cache.set(mealTypesCacheHint);
+  Astro.cache.set(dietaryTermsCacheHint);
+  Astro.cache.set(ingredientTermsCacheHint);
+  Astro.cache.set(settingsCacheHint);
+  Astro.cache.set({ maxAge: 86_400, swr: 604_800 });
 }
 ---
 

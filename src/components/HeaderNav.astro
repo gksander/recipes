@@ -1,0 +1,31 @@
+---
+import AccountNav from "./AccountNav";
+
+interface Props {
+	siteTitle: string;
+	siteLogo?: { url?: string; alt?: string } | null;
+	loginUrl: string;
+}
+
+const { siteTitle, siteLogo, loginUrl } = Astro.props;
+---
+
+<nav class="relative flex min-h-18 items-center gap-4" aria-label="Primary navigation">
+	<a class="shrink-0 text-xl font-black tracking-[-.06em] no-underline" href="/">
+		{siteLogo?.url ? <img src={siteLogo.url} alt={siteLogo.alt || siteTitle} class="site-logo" /> : siteTitle}
+	</a>
+
+	<div class="ml-auto flex items-center gap-5 font-bold sm:gap-8 md:contents">
+		<div class="flex items-center gap-5 sm:gap-8 md:absolute md:left-1/2 md:-translate-x-1/2">
+			<a class="no-underline hover:text-primary" href="/">Recipes</a>
+			<a class="no-underline hover:text-primary" href="/menu">Menu</a>
+		</div>
+		<div class="shrink-0 md:absolute md:right-0">
+			<AccountNav client:load loginUrl={loginUrl} />
+		</div>
+	</div>
+</nav>
+
+<style>
+	.site-logo { height: 48px; width: auto; margin: -8px 0; display: block; }
+</style>

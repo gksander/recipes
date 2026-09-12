@@ -10,8 +10,8 @@ const { entry: recipe, cacheHint, isPreview } = await getEmDashEntry("recipes", 
 if (!recipe) return Astro.redirect("/404");
 const { data: settings, cacheHint: settingsCacheHint } = await getSiteSettingsWithCacheHint();
 if (Astro.cache.enabled) {
-	if (Astro.locals.user || isPreview) {
-		// Logged-in and preview responses contain private CMS state.
+	if (isPreview) {
+		// Preview responses contain draft CMS state.
 		Astro.cache.set(false);
 	} else {
 		Astro.cache.set(cacheHint);

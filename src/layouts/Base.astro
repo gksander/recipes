@@ -9,7 +9,7 @@ import { createPublicPageContext } from "emdash/page";
 import { ClientRouter } from "astro:transitions";
 import { resolveStarterSiteIdentity } from "../utils/site-identity";
 import { recipeLibraryLoginUrl } from "../utils/recipe-library-auth";
-import HeaderNav from "../components/HeaderNav";
+import HeaderNav from "../components/HeaderNav.astro";
 import "../styles/globals.css";
 
 interface Props {
@@ -26,8 +26,6 @@ const { title, pageTitle, description, image, canonical, content } = Astro.props
 const { siteTitle, siteTagline, siteLogo } = resolveStarterSiteIdentity(await getSiteSettings());
 const fullTitle = title.includes(siteTitle) ? title : `${title} — ${siteTitle}`;
 const pageDescription = description ?? siteTagline;
-
-const user = Astro.locals.user;
 
 const pageCtx = createPublicPageContext({
 	Astro,
@@ -62,9 +60,7 @@ const pageCtx = createPublicPageContext({
 				<HeaderNav
 					siteTitle={siteTitle}
 					siteLogo={siteLogo}
-					user={user}
 					loginUrl={recipeLibraryLoginUrl(Astro.url)}
-					client:only="react"
 				/>
 			</div>
 		</header>
