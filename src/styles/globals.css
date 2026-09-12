@@ -1,6 +1,22 @@
 @import "tailwindcss";
 
 @theme inline {
+	--font-sans: ui-rounded, "Nunito Sans", "Avenir Next", system-ui, sans-serif;
+	--font-display: ui-rounded, "Nunito Sans", "Avenir Next", system-ui, sans-serif;
+	--color-recipe-purple: var(--recipe-purple);
+	--color-recipe-purple-strong: var(--recipe-purple-strong);
+	--color-recipe-purple-soft: var(--recipe-purple-soft);
+	--color-recipe-ink: var(--recipe-ink);
+	--color-recipe-muted: var(--recipe-muted);
+	--color-recipe-canvas: var(--recipe-canvas);
+	--color-recipe-surface: var(--recipe-surface);
+	--color-recipe-surface-muted: var(--recipe-surface-muted);
+	--color-recipe-line: var(--recipe-line);
+	--color-recipe-lemon: var(--recipe-lemon);
+	--color-recipe-mint: var(--recipe-mint);
+	--color-recipe-mint-ink: var(--recipe-mint-ink);
+	--color-recipe-coral: var(--recipe-coral);
+	--color-recipe-coral-ink: var(--recipe-coral-ink);
 	--color-background: var(--background);
 	--color-foreground: var(--foreground);
 	--color-card: var(--card);
@@ -23,28 +39,44 @@
 	--radius-md: calc(var(--radius) - 2px);
 	--radius-lg: var(--radius);
 	--radius-xl: calc(var(--radius) + 4px);
+	--radius-2xl: 1.5rem;
+	--radius-pill: 9999px;
 }
 
 :root {
-	--background: oklch(1 0 0);
-	--foreground: oklch(0.145 0 0);
-	--card: oklch(1 0 0);
-	--card-foreground: oklch(0.145 0 0);
-	--popover: oklch(1 0 0);
-	--popover-foreground: oklch(0.145 0 0);
-	--primary: oklch(0.205 0 0);
-	--primary-foreground: oklch(0.985 0 0);
-	--secondary: oklch(0.97 0 0);
-	--secondary-foreground: oklch(0.205 0 0);
-	--muted: oklch(0.97 0 0);
-	--muted-foreground: oklch(0.556 0 0);
-	--accent: oklch(0.97 0 0);
-	--accent-foreground: oklch(0.205 0 0);
+	--recipe-purple: #7557e8;
+	--recipe-purple-strong: #6042d4;
+	--recipe-purple-soft: #eeeaff;
+	--recipe-ink: #20212a;
+	--recipe-muted: #696b76;
+	--recipe-canvas: #f8f8fc;
+	--recipe-surface: #ffffff;
+	--recipe-surface-muted: #f1f1f5;
+	--recipe-line: #e6e6ed;
+	--recipe-lemon: #ffd84d;
+	--recipe-mint: #ddf8e8;
+	--recipe-mint-ink: #168456;
+	--recipe-coral: #ffe2de;
+	--recipe-coral-ink: #d84a3b;
+	--background: var(--recipe-canvas);
+	--foreground: var(--recipe-ink);
+	--card: var(--recipe-surface);
+	--card-foreground: var(--recipe-ink);
+	--popover: var(--recipe-surface);
+	--popover-foreground: var(--recipe-ink);
+	--primary: var(--recipe-purple);
+	--primary-foreground: var(--recipe-surface);
+	--secondary: var(--recipe-surface-muted);
+	--secondary-foreground: var(--recipe-ink);
+	--muted: var(--recipe-surface-muted);
+	--muted-foreground: var(--recipe-muted);
+	--accent: var(--recipe-purple-soft);
+	--accent-foreground: var(--recipe-ink);
 	--destructive: oklch(0.577 0.245 27.325);
-	--border: oklch(0.922 0 0);
-	--input: oklch(0.922 0 0);
-	--ring: oklch(0.708 0 0);
-	--radius: 0.625rem;
+	--border: var(--recipe-line);
+	--input: var(--recipe-line);
+	--ring: var(--recipe-purple);
+	--radius: 1.125rem;
 }
 
 * {
@@ -54,4 +86,5 @@
 body {
 	background: var(--background);
 	color: var(--foreground);
+	font-family: var(--font-sans);
 }
