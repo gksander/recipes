@@ -1,46 +1,133 @@
 ---
-import { getEmDashCollection, getSiteSettings, getTaxonomyTerms, getTermsForEntries } from "emdash";
+import {
+  getEmDashCollection,
+  getSiteSettings,
+  getTaxonomyTerms,
+  getTermsForEntries,
+} from "emdash";
 import RecipeBrowser from "../components/RecipeBrowser";
 import Base from "../layouts/Base.astro";
 import { hasRecipeLibraryAccess } from "../utils/recipe-library-auth";
 import { resolveStarterSiteIdentity } from "../utils/site-identity";
 
-const values = (key: string) => [...new Set((Astro.url.searchParams.get(key) ?? "").split(",").filter(Boolean))];
+const values = (key: string) => [
+  ...new Set(
+    (Astro.url.searchParams.get(key) ?? "").split(",").filter(Boolean),
+  ),
+];
 const meal = Astro.url.searchParams.get("meal") ?? "";
 const dietary = values("dietary");
-const ingredient = values("ingredient").slice(0, 1);
+const ingredient = values("ingredient");
 const query = (Astro.url.searchParams.get("q") ?? "").trim().toLowerCase();
-const [{ entries: recipes, cacheHint }, mealTypes, dietaryTerms, ingredientTerms, settings] = await Promise.all([
-	getEmDashCollection("recipes", { status: "published", limit: 2500, orderBy: { published_at: "desc" } }),
-	getTaxonomyTerms("meal_type"), getTaxonomyTerms("dietary"), getTaxonomyTerms("ingredient"), getSiteSettings(),
+const [
+  { entries: recipes, cacheHint },
+  mealTypes,
+  dietaryTerms,
+  ingredientTerms,
+  settings,
+] = await Promise.all([
+  getEmDashCollection("recipes", {
+    status: "published",
+    limit: 2500,
+    orderBy: { published_at: "desc" },
+  }),
+  getTaxonomyTerms("meal_type"),
+  getTaxonomyTerms("dietary"),
+  getTaxonomyTerms("ingredient"),
+  getSiteSettings(),
 ]);
 Astro.cache.set(cacheHint);
 const recipeIds = recipes.map((recipe) => recipe.data.id);
-const [dietaryByRecipe, mealsByRecipe, ingredientsByRecipe] = await Promise.all([
-	getTermsForEntries("recipes", recipeIds, "dietary"),
-	getTermsForEntries("recipes", recipeIds, "meal_type"),
-	getTermsForEntries("recipes", recipeIds, "ingredient"),
-]);
+const [dietaryByRecipe, mealsByRecipe, ingredientsByRecipe] = await Promise.all(
+  [
+    getTermsForEntries("recipes", recipeIds, "dietary"),
+    getTermsForEntries("recipes", recipeIds, "meal_type"),
+    getTermsForEntries("recipes", recipeIds, "ingredient"),
+  ],
+);
 const recipeItems = recipes.map((entry) => ({
-	slug: entry.id,
-	title: entry.data.title,
-	summary: entry.data.summary ?? null,
-	image: entry.data.featured_image?.src ? { src: entry.data.featured_image.src, alt: entry.data.featured_image.alt ?? "" } : null,
-	mealTypes: mealsByRecipe.get(entry.data.id)?.map((term) => term.slug) ?? [],
-	dietary: dietaryByRecipe.get(entry.data.id)?.map((term) => term.slug) ?? [],
-	ingredients: ingredientsByRecipe.get(entry.data.id)?.map((term) => term.slug) ?? [],
+  slug: entry.id,
+  title: entry.data.title,
+  summary: entry.data.summary ?? null,
+  image: entry.data.featured_image
+    ? {
+        id: entry.data.featured_image.id,
+        src: entry.data.featured_image.src ?? null,
+        storageKey: entry.data.featured_image.meta?.storageKey ?? null,
+        alt: entry.data.featured_image.alt ?? "",
+      }
+    : null,
+  mealTypes: mealsByRecipe.get(entry.data.id)?.map((term) => term.slug) ?? [],
+  dietary: dietaryByRecipe.get(entry.data.id)?.map((term) => term.slug) ?? [],
+  ingredients:
+    ingredientsByRecipe.get(entry.data.id)?.map((term) => term.slug) ?? [],
 }));
-const { entries: pdfRecipes, cacheHint: pdfCacheHint } = hasRecipeLibraryAccess(Astro.locals.user) ? await getEmDashCollection("recipe_pdfs", { status: "published", limit: 2500, orderBy: { recipe_date: "desc" } }) : { entries: [], cacheHint: undefined };
+const { entries: pdfRecipes, cacheHint: pdfCacheHint } = hasRecipeLibraryAccess(
+  Astro.locals.user,
+)
+  ? await getEmDashCollection("recipe_pdfs", {
+      status: "published",
+      limit: 2500,
+      orderBy: { recipe_date: "desc" },
+    })
+  : { entries: [], cacheHint: undefined };
 if (pdfCacheHint) Astro.cache.set(pdfCacheHint);
-const pdfItems = pdfRecipes.map((entry) => ({ slug: entry.id, title: entry.data.title, sourceFilename: entry.data.source_filename }));
+const pdfItems = pdfRecipes.map((entry) => ({
+  slug: entry.id,
+  title: entry.data.title,
+  sourceFilename: entry.data.source_filename,
+  image: entry.data.preview_image
+    ? {
+        id: entry.data.preview_image.id,
+        src: entry.data.preview_image.src ?? null,
+        storageKey: entry.data.preview_image.meta?.storageKey ?? null,
+        alt: entry.data.preview_image.alt ?? "",
+      }
+    : null,
+}));
 const { siteTitle, siteTagline } = resolveStarterSiteIdentity(settings);
 ---
 
 <Base title={siteTitle} description={siteTagline}>
-	<div class="mx-auto max-w-7xl px-4 pb-20 sm:px-8 lg:px-20">
-		<section class="my-2 mb-12 flex min-h-80 items-center overflow-hidden rounded-3xl bg-[url('/images/recipe-hero.png')] bg-cover bg-center md:mb-20"><div class="max-w-xl bg-linear-to-r from-background/95 via-background/75 to-transparent p-8 sm:p-14"><span class="font-extrabold tracking-widest text-primary uppercase">Recipes for every day</span><h1 class="my-3 text-5xl leading-[.93] font-black tracking-[-.07em] sm:text-7xl">Cook something<br /><em class="not-italic text-primary">you’ll love.</em></h1><p class="text-lg text-muted-foreground">Dependable recipes, gathered in one delicious place.</p></div></section>
-						<section class="mx-auto max-w-7xl"><div><span class="font-extrabold tracking-widest text-primary uppercase">Recipe finder</span><h2 class="my-2 text-3xl font-black tracking-[-.05em] sm:text-5xl">What are you in the mood for?</h2></div>
-			<div class="mt-8"><RecipeBrowser client:load recipes={recipeItems} pdfs={pdfItems} mealTypes={mealTypes} dietaryTerms={dietaryTerms} ingredientTerms={ingredientTerms} initialMeal={meal} initialDietary={dietary} initialIngredient={ingredient[0] ?? ""} initialQuery={query} /></div>
-		</section>
-	</div>
+  <div class="pb-20">
+    <section class="my-2 mb-12 flex min-h-80 items-center overflow-hidden rounded-3xl bg-[url('/images/recipe-hero.png')] bg-cover bg-center md:mb-20">
+      <div class="max-w-xl bg-linear-to-r from-white via-background/75 to-transparent p-8 sm:p-14">
+        <span class="font-extrabold tracking-widest text-primary uppercase">
+          Recipes for every day
+        </span>
+        <h1 class="my-3 text-5xl leading-[.93] font-black tracking-[-.07em] sm:text-7xl">
+          Cook something
+          <br />
+          <em class="not-italic text-primary">you’ll love.</em>
+        </h1>
+        <p class="text-lg text-muted-foreground">
+          Dependable recipes, gathered in one delicious place.
+        </p>
+      </div>
+    </section>
+    <section>
+      <div>
+        <span class="font-extrabold tracking-widest text-primary uppercase">
+          Recipe finder
+        </span>
+        <h2 class="my-2 text-3xl font-black tracking-[-.05em] sm:text-5xl">
+          What are you in the mood for?
+        </h2>
+      </div>
+      <div class="mt-8">
+        <RecipeBrowser
+          client:load
+          recipes={recipeItems}
+          pdfs={pdfItems}
+          mealTypes={mealTypes}
+          dietaryTerms={dietaryTerms}
+          ingredientTerms={ingredientTerms}
+          initialMeal={meal}
+          initialDietary={dietary}
+          initialIngredient={ingredient}
+          initialQuery={query}
+        />
+      </div>
+    </section>
+  </div>
 </Base>

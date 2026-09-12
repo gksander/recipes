@@ -57,18 +57,22 @@ const pageCtx = createPublicPageContext({
 	<body class="m-0 bg-background font-sans text-foreground">
 		<EmDashBodyStart page={pageCtx} />
 
-		<header class="bg-background px-4 py-4 sm:px-8 lg:px-20">
-			<HeaderNav
-				siteTitle={siteTitle}
-				siteLogo={siteLogo}
-				user={user}
-				loginUrl={recipeLibraryLoginUrl(Astro.url)}
-				client:load
-			/>
+		<header class="bg-background py-4">
+			<div class="site-container">
+				<HeaderNav
+					siteTitle={siteTitle}
+					siteLogo={siteLogo}
+					user={user}
+					loginUrl={recipeLibraryLoginUrl(Astro.url)}
+					client:load
+				/>
+			</div>
 		</header>
 
 		<main>
-			<slot />
+			<div class="site-container">
+				<slot />
+			</div>
 		</main>
 
 		<EmDashBodyEnd page={pageCtx} />

@@ -57,7 +57,7 @@ export default function HeaderNav({
 
 	return (
 		<nav
-			className="relative mx-auto flex min-h-18 max-w-7xl items-center gap-4 px-4 sm:px-6"
+			className="relative flex min-h-18 items-center gap-4"
 			aria-label="Primary navigation"
 		>
 			<a
@@ -112,7 +112,7 @@ export default function HeaderNav({
 									</Avatar>
 								</button>
 							</DropdownMenuTrigger>
-							<DropdownMenuContent align="end" className="min-w-48 rounded-2xl">
+							<DropdownMenuContent align="end">
 								<DropdownMenuGroup>
 									<DropdownMenuLabel>{profileName}</DropdownMenuLabel>
 									<DropdownMenuSeparator />

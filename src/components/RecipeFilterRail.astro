@@ -84,19 +84,19 @@ const clearUrl = () => {
 </aside>
 
 <style>
-	.recipe-filter-rail { align-self: start; border: 1px solid var(--color-recipe-line, #e7e3dc); border-radius: 1.5rem; background: white; padding: 1.25rem; box-shadow: 0 8px 30px rgb(35 28 15 / .06); }
-	.rail-heading { display: flex; align-items: start; justify-content: space-between; gap: .75rem; border-bottom: 1px solid var(--color-recipe-line, #e7e3dc); padding: .25rem .25rem 1rem; }
-	.rail-eyebrow { margin: 0 0 .2rem; color: var(--color-recipe-orange, #e85d35); font-size: .7rem; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
+	.recipe-filter-rail { align-self: start; border: 1px solid var(--border); border-radius: 1.5rem; background: var(--card); padding: 1.25rem; box-shadow: var(--shadow-lg); }
+	.rail-heading { display: flex; align-items: start; justify-content: space-between; gap: .75rem; border-bottom: 1px solid var(--border); padding: .25rem .25rem 1rem; }
+	.rail-eyebrow { margin: 0 0 .2rem; color: var(--primary); font-size: .7rem; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
 	.rail-heading h2 { margin: 0; font-size: 1.25rem; letter-spacing: -.04em; }
-	.clear-filters { color: var(--color-recipe-muted, #706c65); font-size: .85rem; font-weight: 700; }
-	.filter-group { border-bottom: 1px solid var(--color-recipe-line, #e7e3dc); padding: .9rem .25rem; }
+	.clear-filters { color: var(--muted-foreground); font-size: .85rem; font-weight: 700; }
+	.filter-group { border-bottom: 1px solid var(--border); padding: .9rem .25rem; }
 	.filter-group:last-child { border-bottom: 0; padding-bottom: .15rem; }
 	.filter-group summary { cursor: pointer; font-weight: 800; list-style: none; }
-	.filter-group summary::after { content: "+"; float: right; color: var(--color-recipe-muted, #706c65); font-size: 1.2rem; line-height: .9; }
+	.filter-group summary::after { content: "+"; float: right; color: var(--muted-foreground); font-size: 1.2rem; line-height: .9; }
 	.filter-group[open] summary::after { content: "−"; }
 	.filter-group ul { display: grid; gap: .2rem; margin: .65rem 0 0; padding: 0; list-style: none; }
-	.filter-group a { display: block; border-radius: .65rem; color: var(--color-recipe-muted, #706c65); padding: .42rem .55rem; text-decoration: none; }
-	.filter-group a:hover { background: #f7f4ef; color: var(--color-recipe-ink, #231f20); }
-	.filter-group a.is-active { background: #ffe06a; color: var(--color-recipe-ink, #231f20); font-weight: 800; }
+	.filter-group a { display: block; border-radius: .65rem; color: var(--muted-foreground); padding: .42rem .55rem; text-decoration: none; }
+	.filter-group a:hover { background: var(--accent); color: var(--accent-foreground); }
+	.filter-group a.is-active { background: var(--primary); color: var(--primary-foreground); font-weight: 800; }
 	@media (min-width: 1024px) { .recipe-filter-rail { position: sticky; top: 1.5rem; max-height: calc(100vh - 3rem); overflow-y: auto; } }
 </style>
