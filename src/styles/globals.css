@@ -17,6 +17,7 @@
 	--color-recipe-mint-ink: var(--recipe-mint-ink);
 	--color-recipe-coral: var(--recipe-coral);
 	--color-recipe-coral-ink: var(--recipe-coral-ink);
+	--color-recipe-orange: var(--recipe-orange);
 	--color-background: var(--background);
 	--color-foreground: var(--foreground);
 	--color-card: var(--card);
@@ -58,6 +59,7 @@
 	--recipe-mint-ink: #168456;
 	--recipe-coral: #ffe2de;
 	--recipe-coral-ink: #d84a3b;
+	--recipe-orange: #e7a72e;
 	--background: var(--recipe-canvas);
 	--foreground: var(--recipe-ink);
 	--card: var(--recipe-surface);
@@ -77,14 +79,4 @@
 	--input: var(--recipe-line);
 	--ring: var(--recipe-purple);
 	--radius: 1.125rem;
-}
-
-* {
-	border-color: var(--border);
-}
-
-body {
-	background: var(--background);
-	color: var(--foreground);
-	font-family: var(--font-sans);
 }

@@ -1,5 +1,5 @@
 ---
-import { getMenu, getSiteSettings } from "emdash";
+import { getSiteSettings } from "emdash";
 import {
 	WidgetArea,
 	EmDashHead,
@@ -7,8 +7,8 @@ import {
 	EmDashBodyEnd,
 } from "emdash/ui";
 import { createPublicPageContext } from "emdash/page";
-import LiveSearch from "emdash/ui/search";
 import { resolveStarterSiteIdentity } from "../utils/site-identity";
+import { recipeLibraryLoginUrl } from "../utils/recipe-library-auth";
 import "../styles/globals.css";
 
 interface Props {
@@ -26,7 +26,9 @@ const { siteTitle, siteTagline, siteLogo } = resolveStarterSiteIdentity(await ge
 const fullTitle = title.includes(siteTitle) ? title : `${title} — ${siteTitle}`;
 const pageDescription = description ?? siteTagline;
 
-const menu = await getMenu("primary");
+const user = Astro.locals.user;
+const profileName = user?.name || user?.email || "Account";
+const initials = profileName.split(/[\s@._-]+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
 
 const pageCtx = createPublicPageContext({
 	Astro,
@@ -52,25 +54,22 @@ const pageCtx = createPublicPageContext({
 		{canonical && <link rel="canonical" href={canonical} />}
 		<EmDashHead page={pageCtx} />
 	</head>
-	<body>
+	<body class="m-0 bg-recipe-canvas font-sans text-recipe-ink">
 		<EmDashBodyStart page={pageCtx} />
 
-		<header>
-			<nav>
-				<a href="/">
+		<header class="bg-recipe-canvas px-4 py-4 sm:px-8 lg:px-20">
+			<nav class="mx-auto grid min-h-18 max-w-7xl grid-cols-[1fr_auto] items-center gap-4 rounded-2xl bg-white px-4 shadow-[0_8px_30px_rgb(35_28_15_/_0.06)] sm:px-6 md:grid-cols-[1fr_auto_1fr]" aria-label="Primary navigation">
+				<a class="text-xl font-black tracking-[-.06em] no-underline" href="/">
 					{siteLogo
 						? <img src={siteLogo.url} alt={siteLogo.alt || siteTitle} style="height:48px;width:auto;margin:-8px 0;display:block;" />
 						: siteTitle
 					}
 				</a>
-				{
-					menu?.items.map((item) => (
-						<a href={item.url} target={item.target}>
-							{item.label}
-						</a>
-					))
-				}
-				<LiveSearch placeholder="Search..." collections={["recipes", "pages"]} />
+				<div class="hidden gap-8 justify-self-center font-bold md:flex"><a class="no-underline hover:text-recipe-orange" href="/">Recipes</a><a class="no-underline hover:text-recipe-orange" href="/menu">Menu</a></div>
+				<div class="flex items-center justify-end gap-3">
+					<form class="hidden items-center rounded-full bg-stone-100 pl-4 sm:flex" action="/" role="search"><label class="sr-only" for="site-search">Search recipes</label><input class="w-44 border-0 bg-transparent py-2.5 outline-none" id="site-search" name="q" placeholder="Search recipes..." value={Astro.url.searchParams.get("q") ?? ""} /><button class="border-0 bg-transparent px-3 text-xl" aria-label="Search">⌕</button></form>
+					{user ? <details class="relative"><summary class="list-none cursor-pointer" aria-label={`Open ${profileName} profile menu`}><span class="grid size-10 place-items-center overflow-hidden rounded-full bg-recipe-ink text-xs font-extrabold text-white">{user.avatarUrl ? <img class="size-full object-cover" src={user.avatarUrl} alt="" /> : initials}</span></summary><div class="absolute right-0 z-10 mt-2 grid min-w-48 gap-3 rounded-2xl bg-white p-4 shadow-xl"><strong>{profileName}</strong><a class="no-underline" href="/_emdash/admin">Admin dashboard</a><button class="border-0 bg-transparent text-left" type="button" id="sign-out">Sign out</button></div></details> : <a class="font-bold no-underline" href={recipeLibraryLoginUrl(Astro.url)}>Sign in</a>}
+				</div>
 			</nav>
 		</header>
 
@@ -83,5 +82,11 @@ const pageCtx = createPublicPageContext({
 		</footer>
 
 		<EmDashBodyEnd page={pageCtx} />
+		<script>
+			document.querySelector<HTMLButtonElement>("#sign-out")?.addEventListener("click", async () => {
+				const response = await fetch("/_emdash/api/auth/logout?redirect=/", { method: "POST", headers: { "X-EmDash-Request": "1" } });
+				if (response.ok) window.location.assign("/");
+			});
+		</script>
 	</body>
 </html>

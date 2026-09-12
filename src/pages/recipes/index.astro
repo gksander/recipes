@@ -1,17 +1,3 @@
 ---
-import { getEmDashCollection, getTermsForEntries } from "emdash";
-import { Image } from "emdash/ui";
-import Base from "../../layouts/Base.astro";
-
-const { entries: recipes, cacheHint } = await getEmDashCollection("recipes", { status: "published", orderBy: { published_at: "desc" } });
-if (Astro.cache?.enabled) Astro.cache.set(cacheHint);
-const dietaryByRecipe = await getTermsForEntries("recipes", recipes.map((recipe) => recipe.data.id), "dietary");
+return Astro.redirect("/");
 ---
-
-<Base title="Recipes" description="Recipes worth making again.">
-	<h1>Recipes</h1>
-	{recipes.length === 0 ? <p>No recipes yet. <a href="/_emdash/admin/content/recipes/new">Create one</a>.</p> : <ul>{recipes.map((recipe) => {
-		const dietary = dietaryByRecipe.get(recipe.data.id) ?? [];
-		return <li><a href={`/recipes/${recipe.id}`}>{recipe.data.featured_image && <Image image={recipe.data.featured_image} />}<h2>{recipe.data.title}</h2></a>{recipe.data.summary && <p>{recipe.data.summary}</p>}{dietary.length > 0 && <p>{dietary.map((term) => <a href={`/dietary/${term.slug}`}>{term.label}</a>)}</p>}</li>;
-	})}</ul>}
-</Base>
