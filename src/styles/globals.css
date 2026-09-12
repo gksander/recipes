@@ -2,7 +2,8 @@
 
 @theme inline {
 	--font-sans: ui-rounded, "Nunito Sans", "Avenir Next", system-ui, sans-serif;
-	--font-display: ui-rounded, "Nunito Sans", "Avenir Next", system-ui, sans-serif;
+	--font-display:
+		ui-rounded, "Nunito Sans", "Avenir Next", system-ui, sans-serif;
 	--color-recipe-purple: var(--recipe-purple);
 	--color-recipe-purple-strong: var(--recipe-purple-strong);
 	--color-recipe-purple-soft: var(--recipe-purple-soft);

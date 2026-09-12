@@ -1,0 +1,102 @@
+---
+interface Term {
+	label: string;
+	slug: string;
+}
+
+interface Props {
+	mealTypes: Term[];
+	dietaryTerms: Term[];
+	ingredientTerms: Term[];
+	activeMeal?: string;
+	activeDietary?: string[];
+	activeIngredients?: string[];
+}
+
+const {
+	mealTypes,
+	dietaryTerms,
+	ingredientTerms,
+	activeMeal = "",
+	activeDietary = [],
+	activeIngredients = [],
+} = Astro.props;
+
+const params = new URLSearchParams(Astro.url.searchParams);
+const filterNames = ["meal", "dietary", "ingredient"];
+const hasFilters = filterNames.some((name) => params.has(name));
+
+const filterUrl = (name: string, slug: string, active: boolean, multiple = true) => {
+	const next = new URLSearchParams(params);
+	const current = multiple ? [...new Set((next.get(name) ?? "").split(",").filter(Boolean))] : [];
+	const values = multiple ? (active ? current.filter((value) => value !== slug) : [...current, slug]) : (active ? [] : [slug]);
+	values.length ? next.set(name, values.join(",")) : next.delete(name);
+	next.delete("page");
+	return `/${next.size ? `?${next}` : ""}`;
+};
+
+const clearUrl = () => {
+	const next = new URLSearchParams(params);
+	filterNames.forEach((name) => next.delete(name));
+	next.delete("page");
+	return `/${next.size ? `?${next}` : ""}`;
+};
+---
+
+<aside class="recipe-filter-rail" aria-label="Filter recipes">
+	<div class="rail-heading">
+		<div>
+			<p class="rail-eyebrow">Recipe finder</p>
+			<h2>Filter recipes</h2>
+		</div>
+		{hasFilters && <a class="clear-filters" href={clearUrl()}>Clear</a>}
+	</div>
+
+	<details class="filter-group" open>
+		<summary>Meal type</summary>
+		<ul>
+			{mealTypes.map((term) => {
+				const active = activeMeal === term.slug;
+				return <li><a class:list={{ "is-active": active }} aria-current={active ? "true" : undefined} href={filterUrl("meal", term.slug, active, false)}>{term.label}</a></li>;
+			})}
+		</ul>
+	</details>
+
+	<details class="filter-group" open>
+		<summary>Dietary preferences</summary>
+		<ul>
+			{dietaryTerms.map((term) => {
+				const active = activeDietary.includes(term.slug);
+				return <li><a class:list={{ "is-active": active }} aria-current={active ? "true" : undefined} href={filterUrl("dietary", term.slug, active)}>{term.label}</a></li>;
+			})}
+		</ul>
+	</details>
+
+	<details class="filter-group" open>
+		<summary>Ingredients</summary>
+		<ul>
+			{ingredientTerms.map((term) => {
+				const active = activeIngredients.includes(term.slug);
+				return <li><a class:list={{ "is-active": active }} aria-current={active ? "true" : undefined} href={filterUrl("ingredient", term.slug, active, false)}>{term.label}</a></li>;
+			})}
+		</ul>
+	</details>
+</aside>
+
+<style>
+	.recipe-filter-rail { align-self: start; border: 1px solid var(--color-recipe-line, #e7e3dc); border-radius: 1.5rem; background: white; padding: 1.25rem; box-shadow: 0 8px 30px rgb(35 28 15 / .06); }
+	.rail-heading { display: flex; align-items: start; justify-content: space-between; gap: .75rem; border-bottom: 1px solid var(--color-recipe-line, #e7e3dc); padding: .25rem .25rem 1rem; }
+	.rail-eyebrow { margin: 0 0 .2rem; color: var(--color-recipe-orange, #e85d35); font-size: .7rem; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
+	.rail-heading h2 { margin: 0; font-size: 1.25rem; letter-spacing: -.04em; }
+	.clear-filters { color: var(--color-recipe-muted, #706c65); font-size: .85rem; font-weight: 700; }
+	.filter-group { border-bottom: 1px solid var(--color-recipe-line, #e7e3dc); padding: .9rem .25rem; }
+	.filter-group:last-child { border-bottom: 0; padding-bottom: .15rem; }
+	.filter-group summary { cursor: pointer; font-weight: 800; list-style: none; }
+	.filter-group summary::after { content: "+"; float: right; color: var(--color-recipe-muted, #706c65); font-size: 1.2rem; line-height: .9; }
+	.filter-group[open] summary::after { content: "−"; }
+	.filter-group ul { display: grid; gap: .2rem; margin: .65rem 0 0; padding: 0; list-style: none; }
+	.filter-group a { display: block; border-radius: .65rem; color: var(--color-recipe-muted, #706c65); padding: .42rem .55rem; text-decoration: none; }
+	.filter-group a:hover { background: #f7f4ef; color: var(--color-recipe-ink, #231f20); }
+	.filter-group a.is-active { background: #ffe06a; color: var(--color-recipe-ink, #231f20); font-weight: 800; }
+	@media (min-width: 1024px) { .recipe-filter-rail { position: sticky; top: 1.5rem; max-height: calc(100vh - 3rem); overflow-y: auto; } }
+</style>

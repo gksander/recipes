@@ -25,7 +25,8 @@ const TAXONOMY = "recipe_pdf_tag";
 const args = new Set(process.argv.slice(2));
 const apply = args.has("--apply");
 const limitIndex = process.argv.indexOf("--limit");
-const limit = limitIndex === -1 ? undefined : Number(process.argv[limitIndex + 1]);
+const limit =
+	limitIndex === -1 ? undefined : Number(process.argv[limitIndex + 1]);
 const siteUrl = process.env.EMDASH_URL ?? "https://recipes.gksander.com";
 let token = process.env.EMDASH_TOKEN;
 const run = promisify(execFile);
@@ -38,23 +39,40 @@ async function readCliToken() {
 	if (token) return token;
 	const configRoot = process.env.XDG_CONFIG_HOME || join(homedir(), ".config");
 	try {
-		const credentials = JSON.parse(await readFile(join(configRoot, "emdash", "auth.json"), "utf8"));
+		const credentials = JSON.parse(
+			await readFile(join(configRoot, "emdash", "auth.json"), "utf8"),
+		);
 		const saved = credentials[new URL(siteUrl).origin];
-		if (saved?.accessToken && new Date(saved.expiresAt) > new Date()) return saved.accessToken;
+		if (saved?.accessToken && new Date(saved.expiresAt) > new Date())
+			return saved.accessToken;
 	} catch {
 		// A missing local CLI login is handled with a useful error below.
 	}
-	throw new Error("Log in first with `npx emdash login --url https://recipes.gksander.com`, or set EMDASH_TOKEN to an API token.");
+	throw new Error(
+		"Log in first with `npx emdash login --url https://recipes.gksander.com`, or set EMDASH_TOKEN to an API token.",
+	);
 }
 
 function titleize(recipeSlug) {
-	const smallWords = new Set(["and", "or", "the", "of", "with", "in", "on", "to", "for"]);
+	const smallWords = new Set([
+		"and",
+		"or",
+		"the",
+		"of",
+		"with",
+		"in",
+		"on",
+		"to",
+		"for",
+	]);
 	return recipeSlug
 		.split("-")
 		.filter(Boolean)
 		.map((word, index) => {
 			if (index > 0 && smallWords.has(word)) return word;
-			return word.length <= 3 ? word.toUpperCase() : `${word[0].toUpperCase()}${word.slice(1)}`;
+			return word.length <= 3
+				? word.toUpperCase()
+				: `${word[0].toUpperCase()}${word.slice(1)}`;
 		})
 		.join(" ");
 }
@@ -64,8 +82,25 @@ export function parseRecipeFilename(filename) {
 	const match = /^(\d{4}-\d{2}-\d{2})_(.+)_([^_]+)\.pdf$/i.exec(filename);
 	if (!match) return null;
 	const [, date, recipeSlug, tagPart] = match;
-	const tags = tagPart === "no-tags" ? [] : [...new Set(tagPart.split(",").map((tag) => tag.trim()).filter(Boolean))];
-	return { filename, date, recipeSlug, slug: `${date}-${recipeSlug}`, title: titleize(recipeSlug), tags };
+	const tags =
+		tagPart === "no-tags"
+			? []
+			: [
+					...new Set(
+						tagPart
+							.split(",")
+							.map((tag) => tag.trim())
+							.filter(Boolean),
+					),
+				];
+	return {
+		filename,
+		date,
+		recipeSlug,
+		slug: `${date}-${recipeSlug}`,
+		title: titleize(recipeSlug),
+		tags,
+	};
 }
 
 async function listAll(client, collection) {
@@ -83,11 +118,22 @@ async function createPreview(client, recipe) {
 	const previewDirectory = await mkdtemp(join(tmpdir(), "recipe-preview-"));
 	const previewPath = join(previewDirectory, "page-1.jpg");
 	try {
-		await run("sips", ["-s", "format", "jpeg", join(ARCHIVE_DIRECTORY, recipe.filename), "--out", previewPath]);
-		return await client.mediaUpload(await readFile(previewPath), `${recipe.slug}-preview.jpg`, {
-			alt: `First page of ${recipe.title}`,
-			contentType: "image/jpeg",
-		});
+		await run("sips", [
+			"-s",
+			"format",
+			"jpeg",
+			join(ARCHIVE_DIRECTORY, recipe.filename),
+			"--out",
+			previewPath,
+		]);
+		return await client.mediaUpload(
+			await readFile(previewPath),
+			`${recipe.slug}-preview.jpg`,
+			{
+				alt: `First page of ${recipe.title}`,
+				contentType: "image/jpeg",
+			},
+		);
 	} finally {
 		await rm(previewDirectory, { recursive: true, force: true });
 	}
@@ -101,14 +147,34 @@ async function main() {
 	const invalid = filenames.filter((_, index) => !parsed[index]);
 	const recipes = parsed.filter(Boolean).slice(0, limit);
 
-	console.log(`${apply ? "Importing" : "Dry run:"} ${recipes.length} of ${filenames.length} PDFs from ${ARCHIVE_DIRECTORY}`);
-	if (invalid.length) console.warn(`Skipping ${invalid.length} filenames that do not match the expected convention.`);
-	console.table(recipes.slice(0, 10).map(({ title, date, tags }) => ({ title, date, tags: tags.join(", ") || "—" })));
+	console.log(
+		`${apply ? "Importing" : "Dry run:"} ${recipes.length} of ${filenames.length} PDFs from ${ARCHIVE_DIRECTORY}`,
+	);
+	if (invalid.length)
+		console.warn(
+			`Skipping ${invalid.length} filenames that do not match the expected convention.`,
+		);
+	console.table(
+		recipes.slice(0, 10).map(({ title, date, tags }) => ({
+			title,
+			date,
+			tags: tags.join(", ") || "—",
+		})),
+	);
 	if (!apply) return;
 
-	const client = new EmDashClient({ baseUrl: siteUrl, token: await readCliToken() });
-	const existing = new Map((await listAll(client, COLLECTION)).map((entry) => [entry.slug, entry]));
-	const existingTerms = new Set((await client.terms(TAXONOMY, { limit: 100 })).items.map((term) => term.slug));
+	const client = new EmDashClient({
+		baseUrl: siteUrl,
+		token: await readCliToken(),
+	});
+	const existing = new Map(
+		(await listAll(client, COLLECTION)).map((entry) => [entry.slug, entry]),
+	);
+	const existingTerms = new Set(
+		(await client.terms(TAXONOMY, { limit: 100 })).items.map(
+			(term) => term.slug,
+		),
+	);
 
 	for (const recipe of recipes) {
 		for (const tag of recipe.tags) {
@@ -136,9 +202,13 @@ async function main() {
 		}
 
 		const preview = await createPreview(client, recipe);
-		const media = await client.mediaUpload(await readFile(join(ARCHIVE_DIRECTORY, recipe.filename)), recipe.filename, {
-			contentType: "application/pdf",
-		});
+		const media = await client.mediaUpload(
+			await readFile(join(ARCHIVE_DIRECTORY, recipe.filename)),
+			recipe.filename,
+			{
+				contentType: "application/pdf",
+			},
+		);
 		const entry = await client.create(COLLECTION, {
 			slug: recipe.slug,
 			data: {

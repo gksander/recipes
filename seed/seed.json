@@ -18,19 +18,69 @@
 			"urlPattern": "/recipes/{slug}",
 			"supports": ["drafts", "revisions", "search", "seo"],
 			"fields": [
-				{ "slug": "title", "label": "Title", "type": "string", "required": true, "searchable": true },
-				{ "slug": "featured_image", "label": "Featured image", "type": "image" },
-				{ "slug": "summary", "label": "Summary", "type": "text", "searchable": true },
-				{ "slug": "servings", "label": "Servings", "type": "number", "required": true },
+				{
+					"slug": "title",
+					"label": "Title",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "featured_image",
+					"label": "Featured image",
+					"type": "image"
+				},
+				{
+					"slug": "summary",
+					"label": "Summary",
+					"type": "text",
+					"searchable": true
+				},
+				{
+					"slug": "servings",
+					"label": "Servings",
+					"type": "number",
+					"required": true
+				},
 				{ "slug": "yield_unit", "label": "Yield unit", "type": "string" },
-				{ "slug": "prep_minutes", "label": "Prep time (minutes)", "type": "integer" },
-				{ "slug": "cook_minutes", "label": "Cook time (minutes)", "type": "integer" },
-				{ "slug": "rest_minutes", "label": "Rest time (minutes)", "type": "integer" },
-				{ "slug": "ingredients", "label": "Ingredients", "type": "portableText", "required": true, "searchable": true },
-				{ "slug": "instructions", "label": "Instructions", "type": "portableText", "searchable": true },
+				{
+					"slug": "prep_minutes",
+					"label": "Prep time (minutes)",
+					"type": "integer"
+				},
+				{
+					"slug": "cook_minutes",
+					"label": "Cook time (minutes)",
+					"type": "integer"
+				},
+				{
+					"slug": "rest_minutes",
+					"label": "Rest time (minutes)",
+					"type": "integer"
+				},
+				{
+					"slug": "ingredients",
+					"label": "Ingredients",
+					"type": "portableText",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "instructions",
+					"label": "Instructions",
+					"type": "portableText",
+					"searchable": true
+				},
 				{ "slug": "source_url", "label": "Source URL", "type": "string" },
 				{ "slug": "source_name", "label": "Source name", "type": "string" },
-				{ "slug": "review_status", "label": "Review status", "type": "select", "required": true, "validation": { "options": ["experimental", "vetted", "rejected"] }, "defaultValue": "experimental" }
+				{
+					"slug": "review_status",
+					"label": "Review status",
+					"type": "select",
+					"required": true,
+					"validation": { "options": ["experimental", "vetted", "rejected"] },
+					"defaultValue": "experimental"
+				}
 			]
 		},
 		{
@@ -40,11 +90,38 @@
 			"routable": false,
 			"supports": ["drafts", "revisions", "search"],
 			"fields": [
-				{ "slug": "title", "label": "Title", "type": "string", "required": true, "searchable": true },
-				{ "slug": "pdf", "label": "Recipe PDF", "type": "file", "required": true, "options": { "allowedTypes": ["application/pdf"] } },
-				{ "slug": "source_filename", "label": "Source filename", "type": "string", "required": true, "searchable": true },
-				{ "slug": "recipe_date", "label": "Recipe date", "type": "datetime", "indexed": true },
-				{ "slug": "preview_image", "label": "PDF preview image", "type": "image" }
+				{
+					"slug": "title",
+					"label": "Title",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "pdf",
+					"label": "Recipe PDF",
+					"type": "file",
+					"required": true,
+					"options": { "allowedTypes": ["application/pdf"] }
+				},
+				{
+					"slug": "source_filename",
+					"label": "Source filename",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "recipe_date",
+					"label": "Recipe date",
+					"type": "datetime",
+					"indexed": true
+				},
+				{
+					"slug": "preview_image",
+					"label": "PDF preview image",
+					"type": "image"
+				}
 			]
 		},
 		{
@@ -54,8 +131,19 @@
 			"urlPattern": "/{slug}",
 			"supports": ["drafts", "revisions", "search"],
 			"fields": [
-				{ "slug": "title", "label": "Title", "type": "string", "required": true, "searchable": true },
-				{ "slug": "content", "label": "Content", "type": "portableText", "searchable": true }
+				{
+					"slug": "title",
+					"label": "Title",
+					"type": "string",
+					"required": true,
+					"searchable": true
+				},
+				{
+					"slug": "content",
+					"label": "Content",
+					"type": "portableText",
+					"searchable": true
+				}
 			]
 		}
 	],
@@ -136,7 +224,11 @@
 			"items": [
 				{ "type": "custom", "label": "Home", "url": "/" },
 				{ "type": "custom", "label": "Recipes", "url": "/recipes" },
-				{ "type": "custom", "label": "Recipe library", "url": "/recipe-library" },
+				{
+					"type": "custom",
+					"label": "Recipe library",
+					"url": "/recipe-library"
+				},
 				{ "type": "custom", "label": "About", "url": "/about" }
 			]
 		}
@@ -153,7 +245,13 @@
 						{
 							"_type": "block",
 							"style": "normal",
-							"children": [{ "_type": "span", "text": "A growing collection of recipes worth making again.", "_key": "about-copy" }],
+							"children": [
+								{
+									"_type": "span",
+									"text": "A growing collection of recipes worth making again.",
+									"_key": "about-copy"
+								}
+							],
 							"_key": "about"
 						}
 					]
@@ -171,19 +269,109 @@
 					"servings": 4,
 					"prep_minutes": 15,
 					"ingredients": [
-						{ "_type": "block", "style": "normal", "listItem": "bullet", "level": 1, "children": [{ "_type": "span", "text": "2 (15-ounce) cans chickpeas, rinsed and drained", "_key": "ingredient-1-text" }], "_key": "ingredient-1" },
-						{ "_type": "block", "style": "normal", "listItem": "bullet", "level": 1, "children": [{ "_type": "span", "text": "¼ cup extra-virgin olive oil", "_key": "ingredient-2-text" }], "_key": "ingredient-2" },
-						{ "_type": "block", "style": "normal", "listItem": "bullet", "level": 1, "children": [{ "_type": "span", "text": "1 lemon, zested and juiced", "_key": "ingredient-3-text" }], "_key": "ingredient-3" },
-						{ "_type": "block", "style": "normal", "listItem": "bullet", "level": 1, "children": [{ "_type": "span", "text": "½ cup roughly chopped parsley", "_key": "ingredient-4-text" }], "_key": "ingredient-4" },
-						{ "_type": "block", "style": "normal", "listItem": "bullet", "level": 1, "children": [{ "_type": "span", "text": "½ red onion, finely diced", "_key": "ingredient-5-text" }], "_key": "ingredient-5" }
+						{
+							"_type": "block",
+							"style": "normal",
+							"listItem": "bullet",
+							"level": 1,
+							"children": [
+								{
+									"_type": "span",
+									"text": "2 (15-ounce) cans chickpeas, rinsed and drained",
+									"_key": "ingredient-1-text"
+								}
+							],
+							"_key": "ingredient-1"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"listItem": "bullet",
+							"level": 1,
+							"children": [
+								{
+									"_type": "span",
+									"text": "¼ cup extra-virgin olive oil",
+									"_key": "ingredient-2-text"
+								}
+							],
+							"_key": "ingredient-2"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"listItem": "bullet",
+							"level": 1,
+							"children": [
+								{
+									"_type": "span",
+									"text": "1 lemon, zested and juiced",
+									"_key": "ingredient-3-text"
+								}
+							],
+							"_key": "ingredient-3"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"listItem": "bullet",
+							"level": 1,
+							"children": [
+								{
+									"_type": "span",
+									"text": "½ cup roughly chopped parsley",
+									"_key": "ingredient-4-text"
+								}
+							],
+							"_key": "ingredient-4"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"listItem": "bullet",
+							"level": 1,
+							"children": [
+								{
+									"_type": "span",
+									"text": "½ red onion, finely diced",
+									"_key": "ingredient-5-text"
+								}
+							],
+							"_key": "ingredient-5"
+						}
 					],
 					"instructions": [
-						{ "_type": "block", "style": "normal", "children": [{ "_type": "span", "text": "Whisk the olive oil, lemon zest, lemon juice, and a generous pinch of salt in a large bowl.", "_key": "step-1-text" }], "_key": "step-1" },
-						{ "_type": "block", "style": "normal", "children": [{ "_type": "span", "text": "Fold in the chickpeas, parsley, and red onion. Taste, season, and let stand for 10 minutes before serving.", "_key": "step-2-text" }], "_key": "step-2" }
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "Whisk the olive oil, lemon zest, lemon juice, and a generous pinch of salt in a large bowl.",
+									"_key": "step-1-text"
+								}
+							],
+							"_key": "step-1"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "Fold in the chickpeas, parsley, and red onion. Taste, season, and let stand for 10 minutes before serving.",
+									"_key": "step-2-text"
+								}
+							],
+							"_key": "step-2"
+						}
 					],
 					"review_status": "vetted"
 				},
-				"taxonomies": { "dietary": ["gluten-free", "dairy-free", "vegan"], "meal_type": ["lunch", "dinner"] }
+				"taxonomies": {
+					"dietary": ["gluten-free", "dairy-free", "vegan"],
+					"meal_type": ["lunch", "dinner"]
+				}
 			}
 		]
 	}

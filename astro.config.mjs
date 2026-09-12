@@ -9,12 +9,13 @@ import { d1, r2 } from "@emdash-cms/cloudflare";
 import emdash from "emdash/astro";
 
 const siteUrl = process.env.EMDASH_SITE_URL ?? "https://recipes.gksander.com";
-const localHttps = process.env.ASTRO_LOCAL_HTTPS === "1"
-	? {
-		key: readFileSync(".certs/localhost-key.pem"),
-		cert: readFileSync(".certs/localhost.pem"),
-	}
-	: undefined;
+const localHttps =
+	process.env.ASTRO_LOCAL_HTTPS === "1"
+		? {
+				key: readFileSync(".certs/localhost-key.pem"),
+				cert: readFileSync(".certs/localhost.pem"),
+			}
+		: undefined;
 
 export default defineConfig({
 	site: siteUrl,
