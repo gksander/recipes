@@ -51,6 +51,7 @@ export default defineConfig({
 		react(),
 		AstroPWA({
 			registerType: "autoUpdate",
+			injectRegister: "script",
 			manifest: {
 				name: "Sander Recipes",
 				short_name: "Recipes",
