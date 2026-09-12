@@ -1,6 +1,5 @@
 import { useDebouncedValue } from "@tanstack/react-pacer";
 import { useEffect, useMemo, useState } from "react";
-import { CheckIcon } from "lucide-react";
 import { Combobox as ComboboxPrimitive } from "@base-ui/react";
 import {
 	Card,
@@ -19,8 +18,10 @@ import {
 	ComboboxInput,
 	ComboboxItem,
 	ComboboxList,
+	useComboboxAnchor,
 } from "@/components/ui/combobox";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import {
 	Select,
 	SelectContent,
@@ -29,6 +30,15 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import {
+	Pagination,
+	PaginationContent,
+	PaginationEllipsis,
+	PaginationItem,
+	PaginationLink,
+	PaginationNext,
+	PaginationPrevious,
+} from "@/components/ui/pagination";
 
 type Term = { slug: string; label: string };
 
@@ -45,7 +55,9 @@ export type RecipeListItem = {
 	summary: string | null;
 	image: ImageValue | null;
 	mealTypes: string[];
+	mealTypeLabels: Term[];
 	dietary: string[];
+	dietaryLabels: Term[];
 	ingredients: string[];
 };
 
@@ -62,10 +74,6 @@ interface Props {
 	mealTypes: Term[];
 	dietaryTerms: Term[];
 	ingredientTerms: Term[];
-	initialMeal?: string;
-	initialDietary?: string[];
-	initialIngredient?: string[];
-	initialQuery?: string;
 }
 
 function MultiCombobox({
@@ -79,6 +87,7 @@ function MultiCombobox({
 	onChange: (value: string[]) => void;
 	placeholder: string;
 }) {
+	const anchor = useComboboxAnchor();
 	const items = useMemo(
 		() =>
 			ComboboxPrimitive.createItems(options, {
@@ -90,7 +99,10 @@ function MultiCombobox({
 	const labels = new Map(options.map((option) => [option.slug, option.label]));
 	return (
 		<Combobox multiple items={items} value={value} onValueChange={onChange}>
-			<ComboboxChips className="mt-2 min-h-12 rounded-xl bg-background sm:mt-3">
+			<ComboboxChips
+				ref={anchor}
+				className="mt-2 min-h-12 bg-background sm:mt-3"
+			>
 				{value.map((selected) => (
 					<ComboboxChip
 						className="rounded-md bg-secondary px-2 py-1 text-sm text-secondary-foreground"
@@ -105,12 +117,11 @@ function MultiCombobox({
 					placeholder={value.length ? "Add another" : placeholder}
 				/>
 			</ComboboxChips>
-			<ComboboxContent>
+			<ComboboxContent anchor={anchor}>
 				<ComboboxEmpty>No matches found.</ComboboxEmpty>
 				<ComboboxList>
 					{(item: Term) => (
 						<ComboboxItem key={item.slug} value={item.slug}>
-							<CheckIcon className="mr-2 size-4 opacity-0 data-[selected]:opacity-100" />
 							{item.label}
 						</ComboboxItem>
 					)}
@@ -122,14 +133,13 @@ function MultiCombobox({
 
 const PAGE_SIZE = 50;
 
-function values(key: string) {
-	return [
-		...new Set(
-			(new URLSearchParams(window.location.search).get(key) ?? "")
-				.split(",")
-				.filter(Boolean),
-		),
-	];
+function pageItems(currentPage: number, totalPages: number) {
+	if (totalPages <= 5)
+		return Array.from({ length: totalPages }, (_, index) => index + 1);
+	if (currentPage <= 3) return [1, 2, 3, "ellipsis", totalPages] as const;
+	if (currentPage >= totalPages - 2)
+		return [1, "ellipsis", totalPages - 2, totalPages - 1, totalPages] as const;
+	return [1, "ellipsis", currentPage, "ellipsis-end", totalPages] as const;
 }
 
 function imageUrl(image: ImageValue) {
@@ -144,15 +154,11 @@ export default function RecipeBrowser({
 	mealTypes,
 	dietaryTerms,
 	ingredientTerms,
-	initialMeal = "",
-	initialDietary = [],
-	initialIngredient = [],
-	initialQuery = "",
 }: Props) {
-	const [meal, setMeal] = useState(initialMeal);
-	const [dietary, setDietary] = useState(initialDietary);
-	const [ingredient, setIngredient] = useState(initialIngredient);
-	const [query, setQuery] = useState(initialQuery);
+	const [meal, setMeal] = useState("");
+	const [dietary, setDietary] = useState<string[]>([]);
+	const [ingredient, setIngredient] = useState<string[]>([]);
+	const [query, setQuery] = useState("");
 	const [page, setPage] = useState(1);
 	const [debouncedQuery] = useDebouncedValue(query, { wait: 300 });
 
@@ -196,24 +202,6 @@ export default function RecipeBrowser({
 
 	useEffect(() => {
 		setPage(1);
-	}, [debouncedQuery, dietary, ingredient, meal]);
-
-	useEffect(() => {
-		const params = new URLSearchParams(window.location.search);
-		meal ? params.set("meal", meal) : params.delete("meal");
-		dietary.length
-			? params.set("dietary", dietary.join(","))
-			: params.delete("dietary");
-		ingredient.length
-			? params.set("ingredient", ingredient.join(","))
-			: params.delete("ingredient");
-		debouncedQuery ? params.set("q", debouncedQuery) : params.delete("q");
-		params.delete("page");
-		window.history.replaceState(
-			{},
-			"",
-			`${window.location.pathname}${params.size ? `?${params}` : ""}`,
-		);
 	}, [debouncedQuery, dietary, ingredient, meal]);
 
 	const clear = () => {
@@ -328,6 +316,9 @@ export default function RecipeBrowser({
 														src={imageUrl(item.entry.image)}
 														alt={item.entry.image.alt}
 														loading="lazy"
+														style={{
+															viewTransitionName: `recipe-image-${item.entry.slug.replace(/[^a-zA-Z0-9_-]/g, "-")}`,
+														}}
 													/>
 												) : (
 													<div className="grid h-52 place-items-center bg-linear-to-br from-secondary to-primary font-black tracking-widest text-primary-foreground">
@@ -336,9 +327,18 @@ export default function RecipeBrowser({
 												)}
 											</CardHeader>
 											<CardContent className="p-5">
-												<small className="font-extrabold tracking-widest text-primary uppercase">
-													Recipe
-												</small>
+												<div className="flex flex-wrap gap-1.5">
+													{item.entry.mealTypeLabels.map((term) => (
+														<Badge key={term.slug} variant="secondary">
+															{term.label}
+														</Badge>
+													))}
+													{item.entry.dietaryLabels.map((term) => (
+														<Badge key={term.slug} variant="outline">
+															{term.label}
+														</Badge>
+													))}
+												</div>
 												<CardTitle className="my-1 text-xl font-black tracking-[-.04em]">
 													{item.entry.title}
 												</CardTitle>
@@ -404,40 +404,54 @@ export default function RecipeBrowser({
 					</div>
 				)}
 				{totalPages > 1 && (
-					<nav
-						className="mt-8 flex flex-wrap justify-center gap-1"
-						aria-label="Recipe pages"
-					>
-						<button
-							className="rounded-md border border-border px-3 py-2 disabled:pointer-events-none disabled:opacity-40"
-							type="button"
-							disabled={currentPage === 1}
-							onClick={() => setPage((value) => value - 1)}
-						>
-							Previous
-						</button>
-						{Array.from({ length: totalPages }, (_, index) => index + 1).map(
-							(number) => (
-								<button
-									className={`min-w-10 rounded-md border border-border px-3 py-2 ${number === currentPage ? "border-foreground bg-foreground text-background" : ""}`}
-									type="button"
-									aria-current={number === currentPage ? "page" : undefined}
-									onClick={() => setPage(number)}
-									key={number}
-								>
-									{number}
-								</button>
-							),
-						)}
-						<button
-							className="rounded-md border border-border px-3 py-2 disabled:pointer-events-none disabled:opacity-40"
-							type="button"
-							disabled={currentPage === totalPages}
-							onClick={() => setPage((value) => value + 1)}
-						>
-							Next
-						</button>
-					</nav>
+					<Pagination className="mt-8" aria-label="Recipe pages">
+						<PaginationContent>
+							<PaginationItem>
+								<PaginationPrevious
+									href="#"
+									className="aria-disabled:pointer-events-none aria-disabled:opacity-40"
+									aria-disabled={currentPage === 1}
+									tabIndex={currentPage === 1 ? -1 : undefined}
+									onClick={(event) => {
+										event.preventDefault();
+										if (currentPage > 1) setPage((value) => value - 1);
+									}}
+								/>
+							</PaginationItem>
+							{pageItems(currentPage, totalPages).map((item) =>
+								typeof item === "number" ? (
+									<PaginationItem key={item}>
+										<PaginationLink
+											href="#"
+											isActive={item === currentPage}
+											onClick={(event) => {
+												event.preventDefault();
+												setPage(item);
+											}}
+										>
+											{item}
+										</PaginationLink>
+									</PaginationItem>
+								) : (
+									<PaginationItem key={item}>
+										<PaginationEllipsis />
+									</PaginationItem>
+								),
+							)}
+							<PaginationItem>
+								<PaginationNext
+									href="#"
+									className="aria-disabled:pointer-events-none aria-disabled:opacity-40"
+									aria-disabled={currentPage === totalPages}
+									tabIndex={currentPage === totalPages ? -1 : undefined}
+									onClick={(event) => {
+										event.preventDefault();
+										if (currentPage < totalPages) setPage((value) => value + 1);
+									}}
+								/>
+							</PaginationItem>
+						</PaginationContent>
+					</Pagination>
 				)}
 			</div>
 		</div>

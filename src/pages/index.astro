@@ -9,15 +9,6 @@ import RecipeBrowser from "../components/RecipeBrowser";
 import Base from "../layouts/Base.astro";
 import { resolveStarterSiteIdentity } from "../utils/site-identity";
 
-const values = (key: string) => [
-  ...new Set(
-    (Astro.url.searchParams.get(key) ?? "").split(",").filter(Boolean),
-  ),
-];
-const meal = Astro.url.searchParams.get("meal") ?? "";
-const dietary = values("dietary");
-const ingredient = values("ingredient");
-const query = (Astro.url.searchParams.get("q") ?? "").trim().toLowerCase();
 const [
   { entries: recipes, cacheHint: recipesCacheHint },
   { data: mealTypes, cacheHint: mealTypesCacheHint },
@@ -56,7 +47,9 @@ const recipeItems = recipes.map((entry) => ({
       }
     : null,
   mealTypes: mealsByRecipe.get(entry.data.id)?.map((term) => term.slug) ?? [],
+  mealTypeLabels: mealsByRecipe.get(entry.data.id)?.map((term) => ({ slug: term.slug, label: term.label })) ?? [],
   dietary: dietaryByRecipe.get(entry.data.id)?.map((term) => term.slug) ?? [],
+  dietaryLabels: dietaryByRecipe.get(entry.data.id)?.map((term) => ({ slug: term.slug, label: term.label })) ?? [],
   ingredients:
     ingredientsByRecipe.get(entry.data.id)?.map((term) => term.slug) ?? [],
 }));
@@ -126,10 +119,6 @@ if (Astro.cache.enabled) {
           mealTypes={mealTypes}
           dietaryTerms={dietaryTerms}
           ingredientTerms={ingredientTerms}
-          initialMeal={meal}
-          initialDietary={dietary}
-          initialIngredient={ingredient}
-          initialQuery={query}
         />
       </div>
     </section>

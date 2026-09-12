@@ -4,6 +4,7 @@ import { cloudflareEmail } from "@emdash-cms/cloudflare/plugins";
 import react from "@astrojs/react";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "astro/config";
+import AstroPWA from "@vite-pwa/astro";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { d1, r2 } from "@emdash-cms/cloudflare";
@@ -48,6 +49,33 @@ export default defineConfig({
 	},
 	integrations: [
 		react(),
+		AstroPWA({
+			registerType: "autoUpdate",
+			manifest: {
+				name: "Sander Recipes",
+				short_name: "Recipes",
+				description: "A cozy recipe library from Sander Recipes.",
+				start_url: "/",
+				display: "standalone",
+				background_color: "#f4f1e8",
+				theme_color: "#9a765d",
+				icons: [
+					{
+						src: "/icons/spoon-192.png",
+						sizes: "192x192",
+						type: "image/png",
+					},
+					{
+						src: "/icons/spoon-512.png",
+						sizes: "512x512",
+						type: "image/png",
+					},
+				],
+			},
+			workbox: {
+				navigateFallback: "/404",
+			},
+		}),
 		emdash({
 			siteUrl,
 			database: d1({ binding: "DB" }),

@@ -1,6 +1,7 @@
 ---
 import { decodeSlug, getEmDashEntry, getSeoMeta, getSiteSettingsWithCacheHint } from "emdash";
 import { PortableText } from "emdash/ui";
+import { Badge } from "../../components/ui/badge";
 import Base from "../../layouts/Base.astro";
 import { resolveStarterSiteIdentity } from "../../utils/site-identity";
 
@@ -33,17 +34,24 @@ const featuredImage = recipe.data.featured_image;
 const featuredImageSrc = featuredImage
 	? featuredImage.src ?? `/_emdash/api/media/file/${encodeURIComponent(featuredImage.meta?.storageKey ?? featuredImage.id)}`
 	: null;
+const imageTransitionName = `recipe-image-${slug.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
 ---
 
 <Base title={seo.title} pageTitle={seo.ogTitle} description={seo.description ?? recipe.data.summary} canonical={seo.canonical} image={seo.ogImage} content={{ collection: "recipes", id: recipe.data.id, slug }}>
-	<article class="mx-auto max-w-3xl">
-		<h1 class="text-4xl font-bold tracking-tight sm:text-5xl" {...recipe.edit.title}>{recipe.data.title}</h1>
+	<article class="mx-auto max-w-3xl pb-24 sm:pb-32">
+		<h1 class="pt-10 text-4xl font-bold tracking-tight sm:pt-14 sm:text-5xl" {...recipe.edit.title}>{recipe.data.title}</h1>
 		{featuredImage && featuredImageSrc && (
 			<div class="my-6 h-[clamp(14rem,45vw,28rem)] overflow-hidden [&_img]:h-full [&_img]:w-full [&_img]:object-cover" {...recipe.edit.featured_image}>
-				<img src={featuredImageSrc} alt={featuredImage.alt ?? ""} decoding="async" />
+				<img src={featuredImageSrc} alt={featuredImage.alt ?? ""} decoding="async" style={`view-transition-name: ${imageTransitionName}`} />
 			</div>
 		)}
 		{recipe.data.summary && <p class="text-lg leading-relaxed" {...recipe.edit.summary}>{recipe.data.summary}</p>}
+		{(mealTypes.length > 0 || dietary.length > 0) && (
+			<div class="mt-5 flex flex-wrap gap-2" aria-label="Recipe categories">
+				{mealTypes.map((term) => <Badge key={`meal-${term.slug}`} asChild variant="secondary"><a href={`/recipes?meal=${term.slug}`}>{term.label}</a></Badge>)}
+				{dietary.map((term) => <Badge key={`dietary-${term.slug}`} asChild variant="outline"><a href={`/dietary/${term.slug}`}>{term.label}</a></Badge>)}
+			</div>
+		)}
 		{(metadata.length > 0 || mealTypes.length > 0) && (
 			<dl class="my-6 space-y-2" aria-label="Recipe details">
 				{metadata.length > 0 && <div class="flex gap-2"><dt class="font-bold">Details</dt><dd>{metadata.join(" · ")}</dd></div>}
@@ -64,7 +72,6 @@ const featuredImageSrc = featuredImage
 				</div>
 			</section>
 		)}
-		{dietary.length > 0 && <p>{dietary.map((term) => <a href={`/dietary/${term.slug}`}>{term.label}</a>)}</p>}
 		{recipe.data.source_url && <p>Source: <a href={recipe.data.source_url} rel="nofollow external">{recipe.data.source_name || recipe.data.source_url}</a></p>}
 	</article>
 </Base>
