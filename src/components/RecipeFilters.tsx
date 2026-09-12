@@ -64,8 +64,8 @@ function MultiCombobox({
 	);
 	return (
 		<Combobox multiple items={items} value={value} onValueChange={onChange}>
-			<div className="flex h-11 min-w-40 items-center gap-2 rounded-xl border border-recipe-line bg-white px-3 text-sm">
-				<span className="text-[.68rem] font-extrabold tracking-wider text-recipe-muted uppercase">
+			<div className="flex h-10 min-w-40 items-center gap-2 rounded-md border border-input bg-background px-3 text-sm focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+				<span className="text-[.68rem] font-extrabold tracking-wider text-muted-foreground uppercase">
 					{label}
 				</span>
 				<ComboboxInput
@@ -115,17 +115,14 @@ export default function RecipeFilters({
 	};
 	return (
 		<section aria-label="Recipe filters">
-			<div className="flex flex-wrap items-center gap-3 rounded-2xl border border-recipe-line bg-white p-4">
+			<div className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card p-4">
 				<Select
 					items={[{ label: "Any meal type", value: "" }, ...mealTypes]}
 					value={meal || null}
 					onValueChange={(value) => setMeal(value ?? "")}
 				>
-					<SelectTrigger
-						className="h-11 min-w-40 border-recipe-line bg-white"
-						aria-label="Meal type"
-					>
-						<span className="text-[.68rem] font-extrabold tracking-wider text-recipe-muted uppercase">
+					<SelectTrigger className="min-w-40" aria-label="Meal type">
+						<span className="text-[.68rem] font-extrabold tracking-wider text-muted-foreground uppercase">
 							Meal type
 						</span>
 						<SelectValue placeholder="Any" />
@@ -155,7 +152,7 @@ export default function RecipeFilters({
 					onChange={setIngredient}
 				/>
 				<button
-					className="rounded-xl bg-recipe-ink px-4 py-3 text-sm font-extrabold text-white"
+					className="rounded-md bg-primary px-4 py-2.5 text-sm font-extrabold text-primary-foreground"
 					type="button"
 					onClick={() => navigate(meal, dietary, ingredient)}
 				>
@@ -163,7 +160,7 @@ export default function RecipeFilters({
 				</button>
 				{Boolean(meal || dietary.length || ingredient.length) && (
 					<button
-						className="flex items-center gap-1 bg-transparent text-sm text-recipe-muted"
+						className="flex items-center gap-1 bg-transparent text-sm text-muted-foreground"
 						type="button"
 						onClick={clear}
 					>

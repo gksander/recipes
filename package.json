@@ -25,6 +25,7 @@
 		"@astrojs/react": "^6.0.0",
 		"@base-ui/react": "^1.8.0",
 		"@emdash-cms/cloudflare": "^0.37.0",
+		"@fontsource-variable/dm-sans": "^5.3.0",
 		"@tanstack/react-pacer": "^0.23.0",
 		"astro": "^7.0.0",
 		"class-variance-authority": "^0.7.1",

@@ -82,10 +82,10 @@ export default function HeaderNav({
 
 			<div className="ml-auto flex items-center gap-5 font-bold sm:gap-8 md:contents">
 				<div className="flex items-center gap-5 sm:gap-8 md:absolute md:left-1/2 md:-translate-x-1/2">
-					<a className="no-underline hover:text-recipe-orange" href="/">
+					<a className="no-underline hover:text-primary" href="/">
 						Recipes
 					</a>
-					<a className="no-underline hover:text-recipe-orange" href="/menu">
+					<a className="no-underline hover:text-primary" href="/menu">
 						Menu
 					</a>
 				</div>
@@ -101,12 +101,12 @@ export default function HeaderNav({
 								>
 									<Avatar
 										size="lg"
-										className="bg-recipe-ink text-xs font-extrabold text-white"
+										className="bg-foreground text-xs font-extrabold text-background"
 									>
 										{user.avatarUrl && (
 											<AvatarImage src={user.avatarUrl} alt="" />
 										)}
-										<AvatarFallback className="bg-recipe-ink text-white">
+										<AvatarFallback className="bg-foreground text-background">
 											{initials}
 										</AvatarFallback>
 									</Avatar>

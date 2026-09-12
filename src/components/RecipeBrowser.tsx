@@ -156,7 +156,7 @@ export default function RecipeBrowser({
 				<label className="mt-4 block text-sm font-extrabold">
 					Search
 					<input
-						className="mt-2 h-11 w-full rounded-xl border border-recipe-line bg-white px-3 font-normal outline-none focus:border-recipe-purple"
+						className="mt-2 h-10 w-full rounded-md border border-input bg-background px-3 font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
 						type="search"
 						value={query}
 						onChange={(event) => setQuery(event.currentTarget.value)}
@@ -166,7 +166,7 @@ export default function RecipeBrowser({
 				<label className="mt-4 block text-sm font-extrabold">
 					Meal type
 					<select
-						className="mt-2 h-11 w-full rounded-xl border border-recipe-line bg-white px-3 font-normal"
+						className="mt-2 h-10 w-full rounded-md border border-input bg-background px-3 font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
 						value={meal}
 						onChange={(event) => setMeal(event.currentTarget.value)}
 					>
@@ -189,6 +189,7 @@ export default function RecipeBrowser({
 								key={term.slug}
 							>
 								<input
+									className="accent-primary"
 									type="checkbox"
 									checked={dietary.includes(term.slug)}
 									onChange={(event) =>
@@ -207,7 +208,7 @@ export default function RecipeBrowser({
 				<label className="mt-4 block text-sm font-extrabold">
 					Ingredient
 					<select
-						className="mt-2 h-11 w-full rounded-xl border border-recipe-line bg-white px-3 font-normal"
+						className="mt-2 h-10 w-full rounded-md border border-input bg-background px-3 font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
 						value={ingredient}
 						onChange={(event) => setIngredient(event.currentTarget.value)}
 					>
