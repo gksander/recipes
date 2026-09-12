@@ -1,4 +1,5 @@
 import cloudflare from "@astrojs/cloudflare";
+import { cacheCloudflare } from "@astrojs/cloudflare/cache";
 import { cloudflareEmail } from "@emdash-cms/cloudflare/plugins";
 import react from "@astrojs/react";
 import tailwindcss from "@tailwindcss/vite";
@@ -24,6 +25,9 @@ export default defineConfig({
 		configPath: "./wrangler.jsonc",
 		remoteBindings: true,
 	}),
+	cache: {
+		provider: cacheCloudflare(),
+	},
 	vite: {
 		server: { https: localHttps },
 		plugins: [tailwindcss()],

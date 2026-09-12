@@ -1,15 +1,25 @@
 ---
-import { decodeSlug, getEmDashEntry, getSeoMeta, getSiteSettings } from "emdash";
+import { decodeSlug, getEmDashEntry, getSeoMeta, getSiteSettingsWithCacheHint } from "emdash";
 import { Image, PortableText } from "emdash/ui";
 import Base from "../../layouts/Base.astro";
 import { resolveStarterSiteIdentity } from "../../utils/site-identity";
 
 const slug = decodeSlug(Astro.params.slug);
 if (!slug) return Astro.redirect("/404");
-const { entry: recipe, cacheHint } = await getEmDashEntry("recipes", slug);
+const { entry: recipe, cacheHint, isPreview } = await getEmDashEntry("recipes", slug);
 if (!recipe) return Astro.redirect("/404");
-if (Astro.cache?.enabled) Astro.cache.set(cacheHint);
-const { siteTitle } = resolveStarterSiteIdentity(await getSiteSettings());
+const { data: settings, cacheHint: settingsCacheHint } = await getSiteSettingsWithCacheHint();
+if (Astro.cache.enabled) {
+	if (Astro.locals.user || isPreview) {
+		// Logged-in and preview responses contain private CMS state.
+		Astro.cache.set(false);
+	} else {
+		Astro.cache.set(cacheHint);
+		Astro.cache.set(settingsCacheHint);
+		Astro.cache.set({ maxAge: 86_400, swr: 604_800 });
+	}
+}
+const { siteTitle } = resolveStarterSiteIdentity(settings);
 const seo = getSeoMeta(recipe, { siteTitle, siteUrl: Astro.url.origin, path: Astro.url.pathname.replace(/\/$/, "") });
 const dietary = recipe.data.terms?.dietary ?? [];
 const mealTypes = recipe.data.terms?.meal_type ?? [];

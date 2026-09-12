@@ -1,8 +1,8 @@
 ---
 import {
   getEmDashCollection,
-  getSiteSettings,
-  getTaxonomyTerms,
+  getSiteSettingsWithCacheHint,
+  getTaxonomyTermsWithCacheHint,
   getTermsForEntries,
 } from "emdash";
 import RecipeBrowser from "../components/RecipeBrowser";
@@ -20,23 +20,22 @@ const dietary = values("dietary");
 const ingredient = values("ingredient");
 const query = (Astro.url.searchParams.get("q") ?? "").trim().toLowerCase();
 const [
-  { entries: recipes, cacheHint },
-  mealTypes,
-  dietaryTerms,
-  ingredientTerms,
-  settings,
+  { entries: recipes, cacheHint: recipesCacheHint },
+  { data: mealTypes, cacheHint: mealTypesCacheHint },
+  { data: dietaryTerms, cacheHint: dietaryTermsCacheHint },
+  { data: ingredientTerms, cacheHint: ingredientTermsCacheHint },
+  { data: settings, cacheHint: settingsCacheHint },
 ] = await Promise.all([
   getEmDashCollection("recipes", {
     status: "published",
     limit: 2500,
     orderBy: { published_at: "desc" },
   }),
-  getTaxonomyTerms("meal_type"),
-  getTaxonomyTerms("dietary"),
-  getTaxonomyTerms("ingredient"),
-  getSiteSettings(),
+  getTaxonomyTermsWithCacheHint("meal_type"),
+  getTaxonomyTermsWithCacheHint("dietary"),
+  getTaxonomyTermsWithCacheHint("ingredient"),
+  getSiteSettingsWithCacheHint(),
 ]);
-Astro.cache.set(cacheHint);
 const recipeIds = recipes.map((recipe) => recipe.data.id);
 const [dietaryByRecipe, mealsByRecipe, ingredientsByRecipe] = await Promise.all(
   [
@@ -62,7 +61,7 @@ const recipeItems = recipes.map((entry) => ({
   ingredients:
     ingredientsByRecipe.get(entry.data.id)?.map((term) => term.slug) ?? [],
 }));
-const { entries: pdfRecipes, cacheHint: pdfCacheHint } = hasRecipeLibraryAccess(
+const { entries: pdfRecipes } = hasRecipeLibraryAccess(
   Astro.locals.user,
 )
   ? await getEmDashCollection("recipe_pdfs", {
@@ -70,8 +69,7 @@ const { entries: pdfRecipes, cacheHint: pdfCacheHint } = hasRecipeLibraryAccess(
       limit: 2500,
       orderBy: { recipe_date: "desc" },
     })
-  : { entries: [], cacheHint: undefined };
-if (pdfCacheHint) Astro.cache.set(pdfCacheHint);
+  : { entries: [] };
 const pdfItems = pdfRecipes.map((entry) => ({
   slug: entry.id,
   title: entry.data.title,
@@ -86,6 +84,20 @@ const pdfItems = pdfRecipes.map((entry) => ({
     : null,
 }));
 const { siteTitle, siteTagline } = resolveStarterSiteIdentity(settings);
+
+if (Astro.cache.enabled) {
+  if (Astro.locals.user) {
+    // This response includes recipe-library data and serialized user state.
+    Astro.cache.set(false);
+  } else {
+    Astro.cache.set(recipesCacheHint);
+    Astro.cache.set(mealTypesCacheHint);
+    Astro.cache.set(dietaryTermsCacheHint);
+    Astro.cache.set(ingredientTermsCacheHint);
+    Astro.cache.set(settingsCacheHint);
+    Astro.cache.set({ maxAge: 86_400, swr: 604_800 });
+  }
+}
 ---
 
 <Base title={siteTitle} description={siteTagline}>
