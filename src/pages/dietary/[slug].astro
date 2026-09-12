@@ -1,0 +1,16 @@
+---
+import { decodeSlug, getEmDashCollection, getTerm } from "emdash";
+import { Image } from "emdash/ui";
+import Base from "../../layouts/Base.astro";
+
+const slug = decodeSlug(Astro.params.slug);
+const term = slug ? await getTerm("dietary", slug, { includeCounts: false }) : null;
+if (!term) return Astro.redirect("/404");
+const { entries: recipes, cacheHint } = await getEmDashCollection("recipes", { status: "published", where: { dietary: term.slug }, orderBy: { published_at: "desc" } });
+if (Astro.cache?.enabled) Astro.cache.set(cacheHint);
+---
+
+<Base title={`${term.label} recipes`} description={`Recipes labeled ${term.label}`}>
+	<h1>{term.label} recipes</h1>
+	{recipes.length === 0 ? <p>No recipes yet.</p> : <ul>{recipes.map((recipe) => <li><a href={`/recipes/${recipe.id}`}>{recipe.data.featured_image && <Image image={recipe.data.featured_image} />}<h2>{recipe.data.title}</h2></a>{recipe.data.summary && <p>{recipe.data.summary}</p>}</li>)}</ul>}
+</Base>

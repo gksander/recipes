@@ -3,8 +3,10 @@ import { getEmDashCollection, getSiteSettings } from "emdash";
 import { Image } from "emdash/ui";
 import Base from "../layouts/Base.astro";
 import { resolveStarterSiteIdentity } from "../utils/site-identity";
+import { recipeLibraryLoginUrl } from "../utils/recipe-library-auth";
 
-const { entries: posts, cacheHint } = await getEmDashCollection("posts", {
+const { entries: recipes, cacheHint } = await getEmDashCollection("recipes", {
+	status: "published",
 	orderBy: { published_at: "desc" },
 });
 const { siteTitle, siteTagline } = resolveStarterSiteIdentity(await getSiteSettings());
@@ -12,37 +14,22 @@ if (Astro.cache?.enabled) Astro.cache.set(cacheHint);
 ---
 
 <Base title={siteTitle} description={siteTagline}>
-	<h1>Recent Posts</h1>
-
-	{
-		posts.length === 0 ? (
-			<p>
-				No posts yet.{" "}
-				<a href="/_emdash/admin/content/posts/new">Create one</a>.
-			</p>
-		) : (
-			<ul>
-				{posts.map((post) => (
-					<li>
-						<a href={`/posts/${post.id}`}>
-							{post.data.featured_image && (
-								<Image image={post.data.featured_image} />
-							)}
-							<h2>{post.data.title}</h2>
-						</a>
-						{post.data.excerpt && <p>{post.data.excerpt}</p>}
-						{post.data.publishedAt && (
-							<time datetime={post.data.publishedAt.toISOString()}>
-								{post.data.publishedAt.toLocaleDateString("en-US", {
-									year: "numeric",
-									month: "long",
-									day: "numeric",
-								})}
-							</time>
-						)}
-					</li>
-				))}
-			</ul>
-		)
-	}
+	{!Astro.locals.user && <p><a href={recipeLibraryLoginUrl(Astro.url)}>Sign in</a> to access the recipe PDF library.</p>}
+	<h1>Recent recipes</h1>
+	{recipes.length === 0 ? (
+		<p>No recipes yet. <a href="/_emdash/admin/content/recipes/new">Create one</a>.</p>
+	) : (
+		<ul>
+			{recipes.map((recipe) => (
+				<li>
+					<a href={`/recipes/${recipe.id}`}>
+						{recipe.data.featured_image && <Image image={recipe.data.featured_image} />}
+						<h2>{recipe.data.title}</h2>
+					</a>
+					{recipe.data.summary && <p>{recipe.data.summary}</p>}
+					{recipe.data.publishedAt && <time datetime={recipe.data.publishedAt.toISOString()}>{recipe.data.publishedAt.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</time>}
+				</li>
+			))}
+		</ul>
+	)}
 </Base>

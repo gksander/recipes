@@ -1,0 +1,30 @@
+---
+import { decodeSlug, getEmDashEntry, getSeoMeta, getSiteSettings } from "emdash";
+import { Image, PortableText } from "emdash/ui";
+import Base from "../../layouts/Base.astro";
+import { resolveStarterSiteIdentity } from "../../utils/site-identity";
+
+const slug = decodeSlug(Astro.params.slug);
+if (!slug) return Astro.redirect("/404");
+const { entry: recipe, cacheHint } = await getEmDashEntry("recipes", slug);
+if (!recipe) return Astro.redirect("/404");
+if (Astro.cache?.enabled) Astro.cache.set(cacheHint);
+const { siteTitle } = resolveStarterSiteIdentity(await getSiteSettings());
+const seo = getSeoMeta(recipe, { siteTitle, siteUrl: Astro.url.origin, path: Astro.url.pathname.replace(/\/$/, "") });
+const dietary = recipe.data.terms?.dietary ?? [];
+const mealTypes = recipe.data.terms?.meal_type ?? [];
+---
+
+<Base title={seo.title} pageTitle={seo.ogTitle} description={seo.description ?? recipe.data.summary} canonical={seo.canonical} image={seo.ogImage} content={{ collection: "recipes", id: recipe.data.id, slug }}>
+	<article>
+		{recipe.data.featured_image && <div {...recipe.edit.featured_image}><Image image={recipe.data.featured_image} /></div>}
+		<h1 {...recipe.edit.title}>{recipe.data.title}</h1>
+		{recipe.data.summary && <p {...recipe.edit.summary}>{recipe.data.summary}</p>}
+		<p>{recipe.data.prep_minutes && `${recipe.data.prep_minutes} min prep`}{recipe.data.prep_minutes && recipe.data.cook_minutes && " · "}{recipe.data.cook_minutes && `${recipe.data.cook_minutes} min cook`}</p>
+		{mealTypes.length > 0 && <p>{mealTypes.map((term) => term.label).join(", ")}</p>}
+		<section><h2>Ingredients</h2><PortableText value={recipe.data.ingredients} /></section>
+		<section><h2>Instructions</h2><PortableText value={recipe.data.instructions} /></section>
+		{dietary.length > 0 && <p>{dietary.map((term) => <a href={`/dietary/${term.slug}`}>{term.label}</a>)}</p>}
+		{recipe.data.source_url && <p>Source: <a href={recipe.data.source_url} rel="nofollow external">{recipe.data.source_name || recipe.data.source_url}</a></p>}
+	</article>
+</Base>

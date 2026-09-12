@@ -8,10 +8,11 @@
     "seed": "seed/seed.json"
   },
 	"scripts": {
-		"dev": "wrangler dev",
-		"dev:https": "wrangler dev --local-protocol=https --https-cert-path=.certs/localhost.pem --https-key-path=.certs/localhost-key.pem --infer-origin-from-routes=false",
+		"dev": "astro dev",
+		"dev:https": "EMDASH_SITE_URL=https://localhost:8787 ASTRO_LOCAL_HTTPS=1 astro dev --host --port 8787",
 		"build": "astro build",
 		"build:local": "EMDASH_SITE_URL=https://localhost:8787 astro build",
+		"types": "emdash types",
     "preview": "astro preview",
 		"start": "wrangler dev",
     "typecheck": "astro check"

@@ -1,0 +1,105 @@
+---
+import { getEmDashCollection, getTermsForEntries } from "emdash";
+import { Image } from "emdash/ui";
+import Base from "../../layouts/Base.astro";
+import { hasRecipeLibraryAccess, recipeLibraryLoginUrl } from "../../utils/recipe-library-auth";
+
+if (!hasRecipeLibraryAccess(Astro.locals.user)) {
+	return Astro.redirect(recipeLibraryLoginUrl(Astro.url));
+}
+
+const { entries, cacheHint } = await getEmDashCollection("recipe_pdfs", {
+	status: "published",
+	limit: 2500,
+	orderBy: { title: "asc" },
+});
+Astro.cache.set(cacheHint);
+
+const tagsByRecipe = await getTermsForEntries("recipe_pdfs", entries.map((entry) => entry.data.id), "recipe_pdf_tag");
+const tagLabels = new Map<string, string>();
+for (const terms of tagsByRecipe.values()) {
+	for (const term of terms) tagLabels.set(term.slug, term.label);
+}
+const tags = [...tagLabels].sort(([, a], [, b]) => a.localeCompare(b));
+---
+
+<Base title="Recipe library" description="Original recipe PDFs for subscribers.">
+	<section class="library">
+		<header>
+			<h1>Recipe library</h1>
+			<p>{entries.length} original recipe PDFs. Filter by a tag, then open a recipe without leaving this page.</p>
+		</header>
+
+		{tags.length > 0 && (
+			<nav class="filters" aria-label="Filter recipes by tag">
+				<button type="button" class="is-active" data-tag="all">All</button>
+				{tags.map(([slug, label]) => <button type="button" data-tag={slug}>{label}</button>)}
+			</nav>
+		)}
+
+		{entries.length === 0 ? <p>No recipe PDFs have been imported yet.</p> : (
+			<ul class="recipes">
+				{entries.map((entry) => {
+					const entryTags = tagsByRecipe.get(entry.data.id) ?? [];
+					const pdfUrl = entry.data.pdf ? `/recipe-library/${encodeURIComponent(entry.id)}/pdf` : "";
+					return <li data-tags={entryTags.map((tag) => tag.slug).join(" ")}>
+						<button type="button" class="recipe" data-title={entry.data.title} data-pdf={pdfUrl}>
+							{entry.data.preview_image && <Image image={entry.data.preview_image} widths={[320]} sizes="(max-width: 40rem) 100vw, 20rem" />}
+							<span>{entry.data.title}</span>
+							{entryTags.length > 0 && <small>{entryTags.map((tag) => tag.label).join(" · ")}</small>}
+						</button>
+					</li>;
+				})}
+			</ul>
+		)}
+	</section>
+
+	<dialog id="pdf-viewer" aria-labelledby="pdf-title">
+		<div class="viewer-bar"><strong id="pdf-title"></strong><button type="button" data-close>Close</button></div>
+		<iframe title="Recipe PDF" id="pdf-frame"></iframe>
+	</dialog>
+
+	<script>
+		const dialog = document.querySelector<HTMLDialogElement>("#pdf-viewer");
+		const frame = document.querySelector<HTMLIFrameElement>("#pdf-frame");
+		const title = document.querySelector<HTMLElement>("#pdf-title");
+		const filterButtons = document.querySelectorAll<HTMLButtonElement>(".filters [data-tag]");
+		const recipes = document.querySelectorAll<HTMLLIElement>(".recipes li");
+
+		filterButtons.forEach((button) => button.addEventListener("click", () => {
+			const tag = button.dataset.tag;
+			filterButtons.forEach((item) => item.classList.toggle("is-active", item === button));
+			recipes.forEach((recipe) => {
+				recipe.hidden = tag !== "all" && !recipe.dataset.tags?.split(" ").includes(tag || "");
+			});
+		}));
+
+		document.querySelectorAll<HTMLButtonElement>(".recipe[data-pdf]").forEach((button) => button.addEventListener("click", () => {
+			if (!dialog || !frame || !title || !button.dataset.pdf) return;
+			title.textContent = button.dataset.title || "Recipe PDF";
+			frame.src = button.dataset.pdf;
+			dialog.showModal();
+		}));
+
+		dialog?.querySelector("[data-close]")?.addEventListener("click", () => dialog.close());
+		dialog?.addEventListener("close", () => { if (frame) frame.src = "about:blank"; });
+	</script>
+
+	<style>
+		.library { max-width: 70rem; margin: 0 auto; padding: 2rem 1rem; }
+		.filters { display: flex; flex-wrap: wrap; gap: .5rem; margin: 1.5rem 0; }
+		.filters button, .recipe, .viewer-bar button { font: inherit; }
+		.filters button { border: 1px solid currentColor; border-radius: 999px; background: transparent; padding: .35rem .7rem; cursor: pointer; }
+		.filters .is-active { background: currentColor; color: Canvas; }
+		.recipes { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: .75rem; padding: 0; list-style: none; }
+		.recipe { width: 100%; min-height: 6rem; text-align: left; padding: 1rem; border: 1px solid #bbb; border-radius: .5rem; background: transparent; cursor: pointer; }
+		.recipe:hover, .recipe:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+		.recipe span, .recipe small { display: block; }
+		.recipe :global(img) { display: block; width: 100%; aspect-ratio: 0.7; object-fit: cover; margin: -.25rem 0 .75rem; border-radius: .25rem; }
+		.recipe small { margin-top: .5rem; opacity: .7; }
+		dialog { width: min(96vw, 72rem); height: min(92vh, 62rem); padding: 0; border: 0; }
+		dialog::backdrop { background: rgb(0 0 0 / .65); }
+		.viewer-bar { display: flex; justify-content: space-between; gap: 1rem; align-items: center; padding: .75rem 1rem; }
+		iframe { width: 100%; height: calc(100% - 3.25rem); border: 0; }
+	</style>
+</Base>
