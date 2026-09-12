@@ -75,6 +75,10 @@ export default defineConfig({
 			},
 			workbox: {
 				navigateFallback: "/404",
+				// The EmDash admin's plugin registry is a large, on-demand bundle.
+				// It should be fetched when the admin is opened rather than added to
+				// the public site's offline precache (Workbox's default limit is 2 MiB).
+				globIgnores: ["**/PluginRegistry*.js"],
 			},
 		}),
 		emdash({
