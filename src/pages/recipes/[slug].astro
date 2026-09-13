@@ -1,6 +1,6 @@
 ---
 import { decodeSlug, getEmDashEntry, getSeoMeta, getSiteSettingsWithCacheHint } from "emdash";
-import { PortableText } from "emdash/ui";
+import { Image, PortableText } from "emdash/ui";
 import { Badge } from "../../components/ui/badge";
 import Base from "../../layouts/Base.astro";
 import { resolveStarterSiteIdentity } from "../../utils/site-identity";
@@ -21,6 +21,14 @@ if (Astro.cache.enabled) {
 	}
 }
 const { siteTitle } = resolveStarterSiteIdentity(settings);
+const sourceType = recipe.data.source_type ?? "original";
+const documentPages = Array.isArray(recipe.data.document_pages)
+	? recipe.data.document_pages as Array<{ image?: { src?: string; alt?: string; meta?: { storageKey?: string }; id?: string } }>
+	: [];
+const sourcePdf = recipe.data.source_pdf as { filename?: string; meta?: { storageKey?: string } } | null | undefined;
+const sourcePdfUrl = sourcePdf?.meta?.storageKey
+	? `/_emdash/api/media/file/${encodeURIComponent(sourcePdf.meta.storageKey)}`
+	: null;
 const seo = getSeoMeta(recipe, { siteTitle, siteUrl: Astro.url.origin, path: Astro.url.pathname.replace(/\/$/, "") });
 const dietary = recipe.data.terms?.dietary ?? [];
 const mealTypes = recipe.data.terms?.meal_type ?? [];
@@ -40,7 +48,7 @@ const imageTransitionName = `recipe-image-${slug.replace(/[^a-zA-Z0-9_-]/g, "-")
 <Base title={seo.title} pageTitle={seo.ogTitle} description={seo.description ?? recipe.data.summary} canonical={seo.canonical} image={seo.ogImage} content={{ collection: "recipes", id: recipe.data.id, slug }}>
 	<article class="mx-auto max-w-3xl pb-24 sm:pb-32">
 		<h1 class="pt-10 text-4xl font-bold tracking-tight sm:pt-14 sm:text-5xl" {...recipe.edit.title}>{recipe.data.title}</h1>
-		{featuredImage && featuredImageSrc && (
+		{sourceType !== "hellofresh" && featuredImage && featuredImageSrc && (
 			<div class="my-6 h-[clamp(14rem,45vw,28rem)] overflow-hidden [&_img]:h-full [&_img]:w-full [&_img]:object-cover" {...recipe.edit.featured_image}>
 				<img src={featuredImageSrc} alt={featuredImage.alt ?? ""} decoding="async" style={`view-transition-name: ${imageTransitionName}`} />
 			</div>
@@ -52,19 +60,32 @@ const imageTransitionName = `recipe-image-${slug.replace(/[^a-zA-Z0-9_-]/g, "-")
 				{dietary.map((term) => <Badge key={`dietary-${term.slug}`} asChild variant="outline"><a href={`/dietary/${term.slug}`}>{term.label}</a></Badge>)}
 			</div>
 		)}
-		{(metadata.length > 0 || mealTypes.length > 0) && (
+		{sourceType !== "hellofresh" && (metadata.length > 0 || mealTypes.length > 0) && (
 			<dl class="my-6 space-y-2" aria-label="Recipe details">
 				{metadata.length > 0 && <div class="flex gap-2"><dt class="font-bold">Details</dt><dd>{metadata.join(" · ")}</dd></div>}
 				{mealTypes.length > 0 && <div class="flex gap-2"><dt class="font-bold">Meal type</dt><dd>{mealTypes.map((term) => term.label).join(", ")}</dd></div>}
 			</dl>
 		)}
-		<section class="mt-10">
+		{sourceType === "hellofresh" ? (
+			<section class="mt-10">
+				<div class="mb-5 flex flex-wrap items-center justify-between gap-3">
+					<div>
+						<p class="text-sm font-bold tracking-widest text-primary uppercase">HelloFresh recipe</p>
+						{recipe.data.recipe_date && <p class="mt-1 text-sm text-muted-foreground">{new Date(recipe.data.recipe_date).toLocaleDateString()}</p>}
+					</div>
+					{sourcePdfUrl && <a class="rounded-full border px-4 py-2 text-sm font-bold no-underline hover:bg-muted" href={sourcePdfUrl} download={sourcePdf?.filename}>Download PDF</a>}
+				</div>
+				<div class="document-pages">
+					{documentPages.map((page, index) => page.image && <figure class="document-page"><Image image={page.image} widths={[720, 1080, 1440]} sizes="(max-width: 48rem) 100vw, 48rem" loading={index === 0 ? "eager" : "lazy"} /><figcaption>Page {index + 1}</figcaption></figure>)}
+				</div>
+			</section>
+		) : <section class="mt-10">
 			<h2 class="text-2xl font-bold">Ingredients</h2>
 			<div class="mt-4 space-y-4 leading-relaxed [&_ol]:list-decimal [&_ol]:space-y-2 [&_ol]:pl-6 [&_p]:mt-4 [&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:pl-6">
 				<PortableText value={recipe.data.ingredients} />
 			</div>
-		</section>
-		{recipe.data.instructions && (
+		</section>}
+		{sourceType !== "hellofresh" && recipe.data.instructions && (
 			<section class="mt-10">
 				<h2 class="text-2xl font-bold">Instructions</h2>
 				<div class="mt-4 space-y-4 leading-relaxed [&_ol]:list-decimal [&_ol]:space-y-2 [&_ol]:pl-6 [&_p]:mt-4 [&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:pl-6">
@@ -72,6 +93,13 @@ const imageTransitionName = `recipe-image-${slug.replace(/[^a-zA-Z0-9_-]/g, "-")
 				</div>
 			</section>
 		)}
-		{recipe.data.source_url && <p>Source: <a href={recipe.data.source_url} rel="nofollow external">{recipe.data.source_name || recipe.data.source_url}</a></p>}
+		{sourceType !== "hellofresh" && recipe.data.source_url && <p>Source: <a href={recipe.data.source_url} rel="nofollow external">{recipe.data.source_name || recipe.data.source_url}</a></p>}
 	</article>
 </Base>
+
+<style>
+	.document-pages { display: grid; gap: 1.5rem; }
+	.document-page { margin: 0; overflow: hidden; border: 1px solid var(--border); border-radius: 1rem; background: var(--card); box-shadow: var(--shadow-sm); }
+	.document-page :global(img) { display: block; width: 100%; height: auto; }
+	.document-page figcaption { padding: .6rem 1rem; color: var(--muted-foreground); font-size: .8rem; text-align: center; }
+</style>

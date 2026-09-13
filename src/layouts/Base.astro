@@ -9,7 +9,6 @@ import { createPublicPageContext } from "emdash/page";
 import { ClientRouter } from "astro:transitions";
 import { pwaInfo } from "virtual:pwa-info";
 import { resolveStarterSiteIdentity } from "../utils/site-identity";
-import { recipeLibraryLoginUrl } from "../utils/recipe-library-auth";
 import HeaderNav from "../components/HeaderNav.astro";
 import "../styles/globals.css";
 
@@ -70,7 +69,7 @@ const pageCtx = createPublicPageContext({
 				<HeaderNav
 					siteTitle={siteTitle}
 					siteLogo={siteLogo}
-					loginUrl={recipeLibraryLoginUrl(Astro.url)}
+					loginUrl={`/_emdash/admin/login?redirect=${encodeURIComponent(`${Astro.url.pathname}${Astro.url.search}`)}`}
 				/>
 			</div>
 		</header>

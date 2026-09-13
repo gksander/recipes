@@ -15,7 +15,6 @@ import {
 	ComboboxChips,
 	ComboboxChipsInput,
 	ComboboxEmpty,
-	ComboboxInput,
 	ComboboxItem,
 	ComboboxList,
 	useComboboxAnchor,
@@ -59,20 +58,12 @@ export type RecipeListItem = {
 	dietary: string[];
 	dietaryLabels: Term[];
 	ingredients: string[];
-};
-
-type PdfListItem = {
-	slug: string;
-	title: string;
-	sourceFilename: string;
-	image: ImageValue | null;
-	dietary: string[];
-	ingredients: string[];
+	sourceType: string;
+	sourceFilename: string | null;
 };
 
 interface Props {
 	recipes: RecipeListItem[];
-	pdfs?: PdfListItem[];
 	mealTypes: Term[];
 	dietaryTerms: Term[];
 	ingredientTerms: Term[];
@@ -152,7 +143,6 @@ function imageUrl(image: ImageValue) {
 
 export default function RecipeBrowser({
 	recipes,
-	pdfs = [],
 	mealTypes,
 	dietaryTerms,
 	ingredientTerms,
@@ -180,29 +170,7 @@ export default function RecipeBrowser({
 		);
 	}, [debouncedQuery, dietary, ingredient, meal, recipes]);
 
-	const filteredPdfs = useMemo(() => {
-		// PDFs participate in dietary and ingredient filtering, but do not have
-		// the meal-type taxonomy used by the recipe collection.
-		if (meal) return [];
-		const search = debouncedQuery.trim().toLowerCase();
-		return pdfs.filter(
-			(pdf) =>
-				(!dietary.length ||
-					dietary.some((term) => pdf.dietary.includes(term))) &&
-				(!ingredient.length ||
-					ingredient.some((term) => pdf.ingredients.includes(term))) &&
-				(!search ||
-					`${pdf.title} ${pdf.sourceFilename}`.toLowerCase().includes(search)),
-		);
-	}, [debouncedQuery, dietary, ingredient, meal, pdfs]);
-
-	const items = useMemo(
-		() => [
-			...filteredRecipes.map((entry) => ({ type: "recipe" as const, entry })),
-			...filteredPdfs.map((entry) => ({ type: "pdf" as const, entry })),
-		],
-		[filteredPdfs, filteredRecipes],
-	);
+	const items = filteredRecipes;
 	const totalPages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
 	const currentPage = Math.min(page, totalPages);
 	const visibleItems = items.slice(
@@ -224,7 +192,7 @@ export default function RecipeBrowser({
 	return (
 		<div className="grid min-w-0 gap-8 lg:grid-cols-[17rem_minmax(0,1fr)]">
 			<aside
-				className="recipe-filter-rail min-w-0 self-start lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto"
+				className="recipe-filter-rail min-w-0 self-start lg:sticky lg:top-8 lg:max-h-screen lg:overflow-y-auto"
 				aria-label="Filter recipes"
 			>
 				<Card className="min-w-0 gap-4 rounded-3xl p-5 shadow-lg sm:gap-6">
@@ -273,7 +241,6 @@ export default function RecipeBrowser({
 					<label className="block text-base font-extrabold">
 						Ingredient
 						<MultiCombobox
-							label="Ingredient"
 							options={ingredientTerms}
 							value={ingredient}
 							onChange={setIngredient}
@@ -311,93 +278,61 @@ export default function RecipeBrowser({
 			<div className="min-w-0">
 				{visibleItems.length ? (
 					<ul className="m-0 grid min-w-0 grid-cols-1 gap-5 p-0 sm:grid-cols-2 xl:grid-cols-3">
-						{visibleItems.map((item) =>
-							item.type === "recipe" ? (
-								<li key={item.entry.slug}>
-									<a
-										className="block h-full no-underline"
-										href={`/recipes/${item.entry.slug}`}
-									>
-										<Card className="h-full min-w-0 gap-0 overflow-hidden py-0 transition-shadow hover:shadow-md">
-											<CardHeader className="gap-0 p-0">
-												{item.entry.image ? (
-													<img
-														className="h-52 w-full object-cover"
-														src={imageUrl(item.entry.image)}
-														alt={item.entry.image.alt}
-														loading="lazy"
-														style={{
-															viewTransitionName: `recipe-image-${item.entry.slug.replace(/[^a-zA-Z0-9_-]/g, "-")}`,
-														}}
-													/>
-												) : (
-													<div className="grid h-52 place-items-center bg-linear-to-br from-secondary to-primary font-black tracking-widest text-primary-foreground">
-														Recipe
-													</div>
-												)}
-											</CardHeader>
-											<CardContent className="p-5">
-												<div className="flex flex-wrap gap-1.5">
-													{item.entry.mealTypeLabels.map((term) => (
-														<Badge key={term.slug} variant="secondary">
-															{term.label}
-														</Badge>
-													))}
-													{item.entry.dietaryLabels.map((term) => (
-														<Badge key={term.slug} variant="outline">
-															{term.label}
-														</Badge>
-													))}
+						{visibleItems.map((item) => (
+							<li key={item.slug}>
+								<a
+									className="block h-full no-underline"
+									href={`/recipes/${item.slug}`}
+								>
+									<Card className="h-full min-w-0 gap-0 overflow-hidden py-0 transition-shadow hover:shadow-md">
+										<CardHeader className="gap-0 p-0">
+											{item.image ? (
+												<img
+													className="h-52 w-full object-cover"
+													src={imageUrl(item.image)}
+													alt={item.image.alt}
+													loading="lazy"
+													style={{
+														viewTransitionName: `recipe-image-${item.slug.replace(/[^a-zA-Z0-9_-]/g, "-")}`,
+													}}
+												/>
+											) : (
+												<div className="grid h-52 place-items-center bg-linear-to-br from-secondary to-primary font-black tracking-widest text-primary-foreground">
+													Recipe
 												</div>
-												<CardTitle className="my-1 text-xl font-black tracking-[-.04em]">
-													{item.entry.title}
-												</CardTitle>
-												{item.entry.summary && (
-													<CardDescription className="leading-relaxed">
-														{item.entry.summary}
-													</CardDescription>
+											)}
+										</CardHeader>
+										<CardContent className="p-5">
+											<div className="flex flex-wrap gap-1.5">
+												{item.sourceType === "hellofresh" && (
+													<small className="font-extrabold tracking-widest text-primary uppercase">
+														HelloFresh
+													</small>
 												)}
-											</CardContent>
-										</Card>
-									</a>
-								</li>
-							) : (
-								<li key={item.entry.slug}>
-									<a
-										className="block h-full no-underline"
-										href={`/recipe-library/${item.entry.slug}/pdf`}
-									>
-										<Card className="h-full min-w-0 gap-0 overflow-hidden py-0 transition-shadow hover:shadow-md">
-											<CardHeader className="gap-0 p-0">
-												{item.entry.image ? (
-													<img
-														className="h-52 w-full object-cover"
-														src={imageUrl(item.entry.image)}
-														alt={item.entry.image.alt}
-														loading="lazy"
-													/>
-												) : (
-													<div className="grid h-52 place-items-center bg-linear-to-br from-secondary to-primary font-black tracking-widest text-primary-foreground">
-														PDF
-													</div>
-												)}
-											</CardHeader>
-											<CardContent className="p-5">
-												<small className="font-extrabold tracking-widest text-primary uppercase">
-													Recipe PDF
-												</small>
-												<CardTitle className="my-1 text-xl font-black tracking-[-.04em]">
-													{item.entry.title}
-												</CardTitle>
+												{item.mealTypeLabels.map((term) => (
+													<Badge key={term.slug} variant="secondary">
+														{term.label}
+													</Badge>
+												))}
+												{item.dietaryLabels.map((term) => (
+													<Badge key={term.slug} variant="outline">
+														{term.label}
+													</Badge>
+												))}
+											</div>
+											<CardTitle className="my-1 text-xl font-black tracking-[-.04em]">
+												{item.title}
+											</CardTitle>
+											{item.summary && (
 												<CardDescription className="leading-relaxed">
-													Open the original recipe PDF.
+													{item.summary}
 												</CardDescription>
-											</CardContent>
-										</Card>
-									</a>
-								</li>
-							),
-						)}
+											)}
+										</CardContent>
+									</Card>
+								</a>
+							</li>
+						))}
 					</ul>
 				) : (
 					<div className="py-16 text-center">

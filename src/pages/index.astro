@@ -5,7 +5,7 @@ import {
   getTaxonomyTermsWithCacheHint,
   getTermsForEntries,
 } from "emdash";
-import RecipeBrowser from "../components/RecipeBrowser";
+import RecipeBrowser, { type RecipeListItem } from "../components/RecipeBrowser";
 import Base from "../layouts/Base.astro";
 import { resolveStarterSiteIdentity } from "../utils/site-identity";
 
@@ -26,7 +26,7 @@ const [
   getTaxonomyTermsWithCacheHint("ingredient"),
   getSiteSettingsWithCacheHint(),
 ]);
-const recipeIds = recipes.map((recipe) => recipe.data.id);
+const recipeIds = recipes.map((recipe) => String(recipe.data.id));
 const [dietaryByRecipe, mealsByRecipe, ingredientsByRecipe] = await Promise.all(
   [
     getTermsForEntries("recipes", recipeIds, "dietary"),
@@ -34,63 +34,43 @@ const [dietaryByRecipe, mealsByRecipe, ingredientsByRecipe] = await Promise.all(
     getTermsForEntries("recipes", recipeIds, "ingredient"),
   ],
 );
-const recipeItems = recipes.map((entry) => ({
-  slug: entry.id,
-  title: entry.data.title,
-  summary: entry.data.summary ?? null,
-  image: entry.data.featured_image
-    ? {
-        id: entry.data.featured_image.id,
-        src: entry.data.featured_image.src ?? null,
-        storageKey: entry.data.featured_image.meta?.storageKey ?? null,
-        alt: entry.data.featured_image.alt ?? "",
-      }
-    : null,
-  mealTypes: mealsByRecipe.get(entry.data.id)?.map((term) => term.slug) ?? [],
-  mealTypeLabels:
-    mealsByRecipe
-      .get(entry.data.id)
-      ?.map((term) => ({ slug: term.slug, label: term.label })) ?? [],
-  dietary: dietaryByRecipe.get(entry.data.id)?.map((term) => term.slug) ?? [],
-  dietaryLabels:
-    dietaryByRecipe
-      .get(entry.data.id)
-      ?.map((term) => ({ slug: term.slug, label: term.label })) ?? [],
-  ingredients:
-    ingredientsByRecipe.get(entry.data.id)?.map((term) => term.slug) ?? [],
-}));
-const { entries: pdfRecipes, cacheHint: pdfRecipesCacheHint } =
-  await getEmDashCollection("recipe_pdfs", {
-    status: "published",
-    limit: 2500,
-    orderBy: { recipe_date: "desc" },
-  });
-const pdfIds = pdfRecipes.map((entry) => entry.data.id);
-const [dietaryByPdf, ingredientsByPdf] = await Promise.all([
-  getTermsForEntries("recipe_pdfs", pdfIds, "dietary"),
-  getTermsForEntries("recipe_pdfs", pdfIds, "ingredient"),
-]);
-const pdfItems = pdfRecipes.map((entry) => ({
-  slug: entry.id,
-  title: entry.data.title,
-  sourceFilename: entry.data.source_filename,
-  image: entry.data.preview_image
-    ? {
-        id: entry.data.preview_image.id,
-        src: entry.data.preview_image.src ?? null,
-        storageKey: entry.data.preview_image.meta?.storageKey ?? null,
-        alt: entry.data.preview_image.alt ?? "",
-      }
-    : null,
-  dietary: dietaryByPdf.get(entry.data.id)?.map((term) => term.slug) ?? [],
-  ingredients:
-    ingredientsByPdf.get(entry.data.id)?.map((term) => term.slug) ?? [],
-}));
+const recipeItems: RecipeListItem[] = [...recipes]
+  .sort((a, b) => {
+    const aHelloFresh = a.data.source_type === "hellofresh" ? 1 : 0;
+    const bHelloFresh = b.data.source_type === "hellofresh" ? 1 : 0;
+    return aHelloFresh - bHelloFresh;
+  })
+  .map((entry) => ({
+    slug: entry.id,
+    title: String(entry.data.title),
+    summary: entry.data.summary ? String(entry.data.summary) : null,
+    image: entry.data.featured_image
+      ? {
+          id: String((entry.data.featured_image as any).id),
+          src: (entry.data.featured_image as any).src ?? null,
+          storageKey: (entry.data.featured_image as any).meta?.storageKey ?? null,
+          alt: (entry.data.featured_image as any).alt ?? "",
+        }
+      : null,
+    mealTypes: mealsByRecipe.get(entry.data.id)?.map((term) => term.slug) ?? [],
+    mealTypeLabels:
+      mealsByRecipe
+        .get(entry.data.id)
+        ?.map((term) => ({ slug: term.slug, label: term.label })) ?? [],
+    dietary: dietaryByRecipe.get(entry.data.id)?.map((term) => term.slug) ?? [],
+    dietaryLabels:
+      dietaryByRecipe
+        .get(entry.data.id)
+        ?.map((term) => ({ slug: term.slug, label: term.label })) ?? [],
+    sourceType: String(entry.data.source_type ?? "original"),
+    sourceFilename: entry.data.source_filename ? String(entry.data.source_filename) : null,
+    ingredients:
+      ingredientsByRecipe.get(entry.data.id)?.map((term) => term.slug) ?? [],
+  }));
 const { siteTitle, siteTagline } = resolveStarterSiteIdentity(settings);
 
 if (Astro.cache.enabled) {
   Astro.cache.set(recipesCacheHint);
-  Astro.cache.set(pdfRecipesCacheHint);
   Astro.cache.set(mealTypesCacheHint);
   Astro.cache.set(dietaryTermsCacheHint);
   Astro.cache.set(ingredientTermsCacheHint);
@@ -126,7 +106,6 @@ if (Astro.cache.enabled) {
         <RecipeBrowser
           client:load
           recipes={recipeItems}
-          pdfs={pdfItems}
           mealTypes={mealTypes}
           dietaryTerms={dietaryTerms}
           ingredientTerms={ingredientTerms}

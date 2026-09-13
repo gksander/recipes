@@ -37,6 +37,14 @@
 					"searchable": true
 				},
 				{
+					"slug": "source_type",
+					"label": "Source",
+					"type": "select",
+					"required": true,
+					"validation": { "options": ["original", "hellofresh"] },
+					"defaultValue": "original"
+				},
+				{
 					"slug": "servings",
 					"label": "Servings",
 					"type": "number",
@@ -74,6 +82,40 @@
 				{ "slug": "source_url", "label": "Source URL", "type": "string" },
 				{ "slug": "source_name", "label": "Source name", "type": "string" },
 				{
+					"slug": "source_filename",
+					"label": "Source filename",
+					"type": "string",
+					"searchable": true
+				},
+				{
+					"slug": "recipe_date",
+					"label": "Recipe date",
+					"type": "datetime",
+					"indexed": true
+				},
+				{
+					"slug": "source_pdf",
+					"label": "Source PDF",
+					"type": "file",
+					"options": { "allowedTypes": ["application/pdf"] }
+				},
+				{
+					"slug": "document_pages",
+					"label": "Document pages",
+					"type": "repeater",
+					"validation": {
+						"minItems": 1,
+						"subFields": [
+							{
+								"slug": "image",
+								"label": "Page image",
+								"type": "image",
+								"required": true
+							}
+						]
+					}
+				},
+				{
 					"slug": "review_status",
 					"label": "Review status",
 					"type": "select",
@@ -85,8 +127,8 @@
 		},
 		{
 			"slug": "recipe_pdfs",
-			"label": "Recipe PDFs",
-			"labelSingular": "Recipe PDF",
+			"label": "Legacy Recipe PDFs",
+			"labelSingular": "Legacy Recipe PDF",
 			"routable": false,
 			"supports": ["drafts", "revisions", "search"],
 			"fields": [
@@ -180,7 +222,7 @@
 			"label": "Ingredients",
 			"labelSingular": "Ingredient",
 			"hierarchical": false,
-			"collections": ["recipes", "recipe_pdfs"],
+			"collections": ["recipes"],
 			"terms": [
 				{ "slug": "beef", "label": "Beef" },
 				{ "slug": "ground-beef", "label": "Ground beef" },
@@ -207,14 +249,6 @@
 				{ "slug": "garlic", "label": "Garlic" },
 				{ "slug": "cheese", "label": "Cheese" }
 			]
-		},
-		{
-			"name": "recipe_pdf_tag",
-			"label": "Recipe PDF tags",
-			"labelSingular": "Recipe PDF tag",
-			"hierarchical": false,
-			"collections": ["recipe_pdfs"],
-			"terms": []
 		}
 	],
 	"menus": [
@@ -224,11 +258,6 @@
 			"items": [
 				{ "type": "custom", "label": "Home", "url": "/" },
 				{ "type": "custom", "label": "Recipes", "url": "/recipes" },
-				{
-					"type": "custom",
-					"label": "Recipe library",
-					"url": "/recipe-library"
-				},
 				{ "type": "custom", "label": "About", "url": "/about" }
 			]
 		}

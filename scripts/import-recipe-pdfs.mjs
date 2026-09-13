@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Imports the PDF archive into the Recipe PDFs collection.
+ * Imports the PDF archive into the recipes collection as HelloFresh recipes.
  *
  * Usage:
  *   npx emdash login --url https://recipes.gksander.com
@@ -20,8 +20,7 @@ import { promisify } from "node:util";
 import { EmDashClient } from "emdash/client";
 
 const ARCHIVE_DIRECTORY = "/Volumes/GKSSD/Recipes";
-const COLLECTION = "recipe_pdfs";
-const TAXONOMY = "recipe_pdf_tag";
+const COLLECTION = "recipes";
 const args = new Set(process.argv.slice(2));
 const apply = args.has("--apply");
 const limitIndex = process.argv.indexOf("--limit");
@@ -114,25 +113,33 @@ async function listAll(client, collection) {
 	return entries;
 }
 
-async function createPreview(client, recipe) {
+async function createPages(client, recipe) {
 	const previewDirectory = await mkdtemp(join(tmpdir(), "recipe-preview-"));
-	const previewPath = join(previewDirectory, "page-1.jpg");
+	const outputPrefix = join(previewDirectory, "page");
 	try {
-		await run("sips", [
-			"-s",
-			"format",
-			"jpeg",
+		await run("pdftoppm", [
+			"-jpeg",
+			"-r",
+			"144",
 			join(ARCHIVE_DIRECTORY, recipe.filename),
-			"--out",
-			previewPath,
+			outputPrefix,
 		]);
-		return await client.mediaUpload(
-			await readFile(previewPath),
-			`${recipe.slug}-preview.jpg`,
-			{
-				alt: `First page of ${recipe.title}`,
-				contentType: "image/jpeg",
-			},
+		const pageFiles = (await readdir(previewDirectory))
+			.filter((filename) => /^page-\d+\.jpg$/.test(filename))
+			.sort(
+				(a, b) => Number(a.match(/\d+/)?.[0]) - Number(b.match(/\d+/)?.[0]),
+			);
+		return Promise.all(
+			pageFiles.map(async (filename, index) => ({
+				image: await client.mediaUpload(
+					await readFile(join(previewDirectory, filename)),
+					`${recipe.slug}-page-${index + 1}.jpg`,
+					{
+						alt: `${recipe.title}, page ${index + 1}`,
+						contentType: "image/jpeg",
+					},
+				),
+			})),
 		);
 	} finally {
 		await rm(previewDirectory, { recursive: true, force: true });
@@ -170,38 +177,29 @@ async function main() {
 	const existing = new Map(
 		(await listAll(client, COLLECTION)).map((entry) => [entry.slug, entry]),
 	);
-	const existingTerms = new Set(
-		(await client.terms(TAXONOMY, { limit: 100 })).items.map(
-			(term) => term.slug,
-		),
-	);
-
 	for (const recipe of recipes) {
-		for (const tag of recipe.tags) {
-			if (!existingTerms.has(tag)) {
-				await client.createTerm(TAXONOMY, { slug: tag, label: titleize(tag) });
-				existingTerms.add(tag);
-			}
-		}
-
 		const existingEntry = existing.get(recipe.slug);
 		if (existingEntry) {
-			if (existingEntry.data?.preview_image) {
-				console.log(`Skip existing with preview: ${recipe.slug}`);
+			if (existingEntry.data?.document_pages?.length) {
+				console.log(`Skip existing with pages: ${recipe.slug}`);
 				continue;
 			}
-			const preview = await createPreview(client, recipe);
+			const pages = await createPages(client, recipe);
 			const current = await client.get(COLLECTION, existingEntry.id);
 			const updated = await client.update(COLLECTION, existingEntry.id, {
 				_rev: current._rev,
-				data: { preview_image: preview },
+				data: {
+					source_type: "hellofresh",
+					document_pages: pages,
+					featured_image: pages[0]?.image,
+				},
 			});
 			if (updated.draftRevisionId) await client.publish(COLLECTION, updated.id);
 			console.log(`Added preview: ${recipe.title}`);
 			continue;
 		}
 
-		const preview = await createPreview(client, recipe);
+		const pages = await createPages(client, recipe);
 		const media = await client.mediaUpload(
 			await readFile(join(ARCHIVE_DIRECTORY, recipe.filename)),
 			recipe.filename,
@@ -213,12 +211,24 @@ async function main() {
 			slug: recipe.slug,
 			data: {
 				title: recipe.title,
-				pdf: media,
-				preview_image: preview,
+				servings: 0.25,
+				ingredients: [
+					{
+						_type: "block",
+						style: "normal",
+						children: [
+							{ _type: "span", text: "See the scanned recipe pages." },
+						],
+					},
+				],
+				review_status: "experimental",
+				source_type: "hellofresh",
+				featured_image: pages[0]?.image,
+				source_pdf: media,
+				document_pages: pages,
 				source_filename: recipe.filename,
 				recipe_date: `${recipe.date}T00:00:00.000Z`,
 			},
-			taxonomies: { [TAXONOMY]: recipe.tags },
 		});
 		await client.publish(COLLECTION, entry.id);
 		console.log(`Imported: ${recipe.title}`);
