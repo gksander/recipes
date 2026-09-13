@@ -62,12 +62,8 @@ export default function AccountNav({ loginUrl }: Props) {
 
 	if (user === undefined) {
 		return (
-			<div className="flex items-center">
-				<span className="hidden md:inline">Sign in</span>
-				<span
-					className="inline-flex items-center gap-2 md:hidden"
-					aria-label="Loading account"
-				>
+			<div className="flex items-center" aria-label="Loading account">
+				<span className="inline-flex items-center gap-2">
 					<span>Menu</span>
 					<MenuIcon aria-hidden="true" size={20} />
 				</span>
@@ -75,74 +71,41 @@ export default function AccountNav({ loginUrl }: Props) {
 		);
 	}
 
-	const authAction = user ? "Sign out" : "Sign in";
-
 	return (
-		<>
-			<DropdownMenu>
-				<DropdownMenuTrigger asChild>
-					<button
-						type="button"
-						className="inline-flex items-center gap-2 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 md:hidden"
-						aria-label="Open navigation menu"
-					>
-						<span>Menu</span>
-						<MenuIcon aria-hidden="true" size={20} />
-					</button>
-				</DropdownMenuTrigger>
-				<DropdownMenuContent align="end">
-					<DropdownMenuGroup>
-						<DropdownMenuItem asChild>
-							<a href="/">Recipes</a>
-						</DropdownMenuItem>
-						<DropdownMenuItem asChild>
-							<a href="/menu">Menu</a>
-						</DropdownMenuItem>
-						{user.isAdmin && (
-							<DropdownMenuItem asChild>
-								<a href="/_emdash/admin">Admin</a>
-							</DropdownMenuItem>
-						)}
-						<DropdownMenuSeparator />
-						{user ? (
-							<DropdownMenuItem onSelect={signOut}>
-								{authAction}
-							</DropdownMenuItem>
-						) : (
-							<DropdownMenuItem asChild>
-								<a href={loginUrl}>{authAction}</a>
-							</DropdownMenuItem>
-						)}
-					</DropdownMenuGroup>
-				</DropdownMenuContent>
-			</DropdownMenu>
-
-			{user ? (
-				<div className="hidden items-center gap-4 md:flex">
-					{user.isAdmin && (
-						<a
-							className="font-bold no-underline hover:text-primary"
-							href="/_emdash/admin"
-						>
-							Admin
-						</a>
-					)}
-					<button
-						type="button"
-						className="font-bold no-underline hover:text-primary"
-						onClick={signOut}
-					>
-						Sign out
-					</button>
-				</div>
-			) : (
-				<a
-					className="hidden font-bold no-underline hover:text-primary md:inline"
-					href={loginUrl}
+		<DropdownMenu>
+			<DropdownMenuTrigger asChild>
+				<button
+					type="button"
+					className="inline-flex items-center gap-2 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+					aria-label="Open navigation menu"
 				>
-					Sign in
-				</a>
-			)}
-		</>
+					<span>Menu</span>
+					<MenuIcon aria-hidden="true" size={20} />
+				</button>
+			</DropdownMenuTrigger>
+			<DropdownMenuContent align="end">
+				<DropdownMenuGroup>
+					<DropdownMenuItem asChild>
+						<a href="/">Recipes</a>
+					</DropdownMenuItem>
+					<DropdownMenuItem asChild>
+						<a href="/menu">Menu</a>
+					</DropdownMenuItem>
+					{user.isAdmin && (
+						<DropdownMenuItem asChild>
+							<a href="/_emdash/admin">Admin</a>
+						</DropdownMenuItem>
+					)}
+					<DropdownMenuSeparator />
+					{user ? (
+						<DropdownMenuItem onSelect={signOut}>Sign out</DropdownMenuItem>
+					) : (
+						<DropdownMenuItem asChild>
+							<a href={loginUrl}>Sign in</a>
+						</DropdownMenuItem>
+					)}
+				</DropdownMenuGroup>
+			</DropdownMenuContent>
+		</DropdownMenu>
 	);
 }

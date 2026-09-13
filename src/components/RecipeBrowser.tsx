@@ -275,9 +275,9 @@ export default function RecipeBrowser({
 					</label>
 				</Card>
 			</aside>
-			<div className="min-w-0">
+			<div className="@container min-w-0">
 				{visibleItems.length ? (
-					<ul className="m-0 grid min-w-0 grid-cols-1 gap-5 p-0 sm:grid-cols-2 xl:grid-cols-3">
+					<ul className="m-0 grid min-w-0 grid-cols-1 gap-5 p-0 @lg:grid-cols-2">
 						{visibleItems.map((item) => (
 							<li key={item.slug}>
 								<a

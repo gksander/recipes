@@ -46,7 +46,7 @@ const imageTransitionName = `recipe-image-${slug.replace(/[^a-zA-Z0-9_-]/g, "-")
 ---
 
 <Base title={seo.title} pageTitle={seo.ogTitle} description={seo.description ?? recipe.data.summary} canonical={seo.canonical} image={seo.ogImage} content={{ collection: "recipes", id: recipe.data.id, slug }}>
-	<article class="mx-auto max-w-3xl pb-24 sm:pb-32">
+	<article class="pb-24 sm:pb-32">
 		<h1 class="pt-10 text-4xl font-bold tracking-tight sm:pt-14 sm:text-5xl" {...recipe.edit.title}>{recipe.data.title}</h1>
 		{sourceType !== "hellofresh" && featuredImage && featuredImageSrc && (
 			<div class="my-6 h-[clamp(14rem,45vw,28rem)] overflow-hidden [&_img]:h-full [&_img]:w-full [&_img]:object-cover" {...recipe.edit.featured_image}>
