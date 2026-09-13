@@ -277,7 +277,7 @@ export default function RecipeBrowser({
 			</aside>
 			<div className="@container min-w-0">
 				{visibleItems.length ? (
-					<ul className="m-0 grid min-w-0 grid-cols-1 gap-5 p-0 @lg:grid-cols-2">
+					<ul className="m-0 grid min-w-0 grid-cols-2 gap-5 p-0 @max-lg:grid-cols-1">
 						{visibleItems.map((item) => (
 							<li key={item.slug}>
 								<a
