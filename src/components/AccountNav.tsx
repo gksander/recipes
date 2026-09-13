@@ -77,7 +77,7 @@ export default function AccountNav({ loginUrl }: Props) {
 					<DropdownMenuItem asChild>
 						<a href="/favorites">Favorites</a>
 					</DropdownMenuItem>
-					{user.isAdmin && (
+					{user?.isAdmin && (
 						<DropdownMenuItem asChild>
 							<a href="/_emdash/admin">Admin</a>
 						</DropdownMenuItem>
