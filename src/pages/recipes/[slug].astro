@@ -1,7 +1,8 @@
 ---
 import { decodeSlug, getEmDashEntry, getSeoMeta, getSiteSettingsWithCacheHint } from "emdash";
-import { Image, PortableText } from "emdash/ui";
+import { PortableText } from "emdash/ui";
 import { Badge } from "../../components/ui/badge";
+import FavoriteButton from "../../components/FavoriteButton";
 import Base from "../../layouts/Base.astro";
 import { resolveStarterSiteIdentity } from "../../utils/site-identity";
 
@@ -25,6 +26,11 @@ const sourceType = recipe.data.source_type ?? "original";
 const documentPages = Array.isArray(recipe.data.document_pages)
 	? recipe.data.document_pages as Array<{ image?: { src?: string; alt?: string; meta?: { storageKey?: string }; id?: string } }>
 	: [];
+function imageUrl(image: { src?: string; alt?: string; meta?: { storageKey?: string }; id?: string }) {
+	if (image.src) return image.src;
+	const key = image.meta?.storageKey || image.id;
+	return `/_emdash/api/media/file/${encodeURIComponent(key ?? "")}`;
+}
 const sourcePdf = recipe.data.source_pdf as { filename?: string; meta?: { storageKey?: string } } | null | undefined;
 const sourcePdfUrl = sourcePdf?.meta?.storageKey
 	? `/_emdash/api/media/file/${encodeURIComponent(sourcePdf.meta.storageKey)}`
@@ -47,7 +53,10 @@ const imageTransitionName = `recipe-image-${slug.replace(/[^a-zA-Z0-9_-]/g, "-")
 
 <Base title={seo.title} pageTitle={seo.ogTitle} description={seo.description ?? recipe.data.summary} canonical={seo.canonical} image={seo.ogImage} content={{ collection: "recipes", id: recipe.data.id, slug }}>
 	<article class="pb-24 sm:pb-32">
-		<h1 class="pt-10 text-4xl font-bold tracking-tight sm:pt-14 sm:text-5xl" {...recipe.edit.title}>{recipe.data.title}</h1>
+		<div class="flex items-start justify-between gap-4 pt-10 sm:pt-14">
+			<h1 class="text-4xl font-bold tracking-tight sm:text-5xl" {...recipe.edit.title}>{recipe.data.title}</h1>
+			<FavoriteButton client:load slug={slug} initialFavorited={recipe.data.favorited === true} />
+		</div>
 		{sourceType !== "hellofresh" && featuredImage && featuredImageSrc && (
 			<div class="my-6 h-[clamp(14rem,45vw,28rem)] overflow-hidden [&_img]:h-full [&_img]:w-full [&_img]:object-cover" {...recipe.edit.featured_image}>
 				<img src={featuredImageSrc} alt={featuredImage.alt ?? ""} decoding="async" style={`view-transition-name: ${imageTransitionName}`} />
@@ -76,7 +85,7 @@ const imageTransitionName = `recipe-image-${slug.replace(/[^a-zA-Z0-9_-]/g, "-")
 					{sourcePdfUrl && <a class="rounded-full border px-4 py-2 text-sm font-bold no-underline hover:bg-muted" href={sourcePdfUrl} download={sourcePdf?.filename}>Download PDF</a>}
 				</div>
 				<div class="document-pages">
-					{documentPages.map((page, index) => page.image && <figure class="document-page"><Image image={page.image} widths={[720, 1080, 1440]} sizes="(max-width: 48rem) 100vw, 48rem" loading={index === 0 ? "eager" : "lazy"} /><figcaption>Page {index + 1}</figcaption></figure>)}
+					{documentPages.map((page, index) => page.image && <figure class="document-page"><img src={imageUrl(page.image)} alt={page.image.alt ?? ""} loading={index === 0 ? "eager" : "lazy"} decoding="async" style={index === 0 ? `view-transition-name: ${imageTransitionName}` : undefined} /><figcaption>Page {index + 1}</figcaption></figure>)}
 				</div>
 			</section>
 		) : <section class="mt-10">

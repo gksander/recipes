@@ -15,14 +15,8 @@ const { siteTitle, siteLogo, loginUrl } = Astro.props;
 		{siteLogo?.url ? <img src={siteLogo.url} alt={siteLogo.alt || siteTitle} class="site-logo" /> : siteTitle}
 	</a>
 
-	<div class="ml-auto flex items-center gap-5 font-bold sm:gap-8 md:contents">
-		<div class="hidden items-center gap-5 sm:gap-8 md:absolute md:left-1/2 md:flex md:-translate-x-1/2">
-			<a class="no-underline hover:text-primary" href="/">Recipes</a>
-			<a class="no-underline hover:text-primary" href="/menu">Menu</a>
-		</div>
-		<div class="shrink-0 md:absolute md:right-0">
-			<AccountNav client:load loginUrl={loginUrl} />
-		</div>
+	<div class="ml-auto font-bold">
+		<AccountNav client:load loginUrl={loginUrl} />
 	</div>
 </nav>
 

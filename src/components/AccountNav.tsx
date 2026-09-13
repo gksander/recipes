@@ -8,44 +8,27 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-interface User {
-	name?: string | null;
-	email?: string | null;
-	avatarUrl?: string | null;
-	isAdmin?: boolean;
-}
+import {
+	getCachedUser,
+	loadCurrentUser,
+	setCurrentUser,
+	subscribeToAuth,
+	type AuthUser,
+} from "../lib/auth-client";
 
 interface Props {
 	loginUrl: string;
 }
 
-let cachedUser: User | null | undefined;
-let sessionRequest: Promise<User | null> | undefined;
-
-function getSession() {
-	if (cachedUser !== undefined) return Promise.resolve(cachedUser);
-	if (!sessionRequest) {
-		sessionRequest = fetch("/api/session", { credentials: "same-origin" })
-			.then(async (response) => {
-				if (!response.ok) return null;
-				const data = (await response.json()) as { user?: User | null };
-				return data.user ?? null;
-			})
-			.catch(() => null)
-			.then((user) => {
-				cachedUser = user;
-				return user;
-			});
-	}
-	return sessionRequest;
-}
-
 export default function AccountNav({ loginUrl }: Props) {
-	const [user, setUser] = useState<User | null | undefined>(cachedUser);
+	const [user, setUser] = useState<AuthUser | null | undefined>(
+		getCachedUser(),
+	);
 
 	useEffect(() => {
-		void getSession().then(setUser);
+		const unsubscribe = subscribeToAuth(setUser);
+		void loadCurrentUser().then(setUser);
+		return unsubscribe;
 	}, []);
 
 	async function signOut() {
@@ -55,7 +38,7 @@ export default function AccountNav({ loginUrl }: Props) {
 		});
 
 		if (response.ok) {
-			cachedUser = null;
+			setCurrentUser(null);
 			window.location.assign("/");
 		}
 	}
@@ -90,6 +73,9 @@ export default function AccountNav({ loginUrl }: Props) {
 					</DropdownMenuItem>
 					<DropdownMenuItem asChild>
 						<a href="/menu">Menu</a>
+					</DropdownMenuItem>
+					<DropdownMenuItem asChild>
+						<a href="/favorites">Favorites</a>
 					</DropdownMenuItem>
 					{user.isAdmin && (
 						<DropdownMenuItem asChild>

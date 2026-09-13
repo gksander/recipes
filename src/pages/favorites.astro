@@ -1,0 +1,59 @@
+---
+import { getEmDashCollection, getSiteSettingsWithCacheHint, getTermsForEntries } from "emdash";
+import RecipeCard from "../components/RecipeCard";
+import type { RecipeListItem } from "../components/RecipeBrowser";
+import Base from "../layouts/Base.astro";
+import { resolveStarterSiteIdentity } from "../utils/site-identity";
+
+const [
+	{ entries: recipes, cacheHint: recipesCacheHint },
+	{ data: settings, cacheHint: settingsCacheHint },
+] = await Promise.all([
+	getEmDashCollection("recipes", {
+		status: "published",
+		where: { favorited: true },
+		limit: 2500,
+		orderBy: { published_at: "desc" },
+	}),
+	getSiteSettingsWithCacheHint(),
+]);
+
+const recipeIds = recipes.map((recipe) => String(recipe.data.id));
+const [dietaryByRecipe, mealsByRecipe] = await Promise.all([
+	getTermsForEntries("recipes", recipeIds, "dietary"),
+	getTermsForEntries("recipes", recipeIds, "meal_type"),
+]);
+const recipeItems: RecipeListItem[] = recipes.map((entry) => ({
+	slug: entry.id,
+	title: String(entry.data.title),
+	summary: entry.data.summary ? String(entry.data.summary) : null,
+	image: entry.data.featured_image
+		? { id: String((entry.data.featured_image as any).id), src: (entry.data.featured_image as any).src ?? null, storageKey: (entry.data.featured_image as any).meta?.storageKey ?? null, alt: (entry.data.featured_image as any).alt ?? "" }
+		: null,
+	mealTypes: mealsByRecipe.get(entry.data.id)?.map((term) => term.slug) ?? [],
+	mealTypeLabels: mealsByRecipe.get(entry.data.id)?.map((term) => ({ slug: term.slug, label: term.label })) ?? [],
+	dietary: dietaryByRecipe.get(entry.data.id)?.map((term) => term.slug) ?? [],
+	dietaryLabels: dietaryByRecipe.get(entry.data.id)?.map((term) => ({ slug: term.slug, label: term.label })) ?? [],
+	sourceType: String(entry.data.source_type ?? "original"),
+	sourceFilename: entry.data.source_filename ? String(entry.data.source_filename) : null,
+	ingredients: [],
+}));
+const { siteTitle } = resolveStarterSiteIdentity(settings);
+if (Astro.cache.enabled) {
+	Astro.cache.set(recipesCacheHint);
+	Astro.cache.set(settingsCacheHint);
+	Astro.cache.set({ maxAge: 300, swr: 86_400 });
+}
+---
+
+<Base title={`Favorites — ${siteTitle}`}>
+	<section class="pb-20">
+		<h1 class="pt-10 text-4xl font-black tracking-[-.06em] sm:pt-14 sm:text-6xl">Favorites</h1>
+		<p class="mt-3 text-lg text-muted-foreground">Recipes worth coming back to.</p>
+		{recipeItems.length ? (
+			<ul class="m-0 mt-10 grid min-w-0 grid-cols-1 gap-5 p-0 sm:grid-cols-2 xl:grid-cols-3">
+				{recipeItems.map((item) => <li><RecipeCard item={item} /></li>)}
+			</ul>
+		) : <p class="mt-10 rounded-3xl border border-dashed p-10 text-center text-muted-foreground">No favorites yet.</p>}
+	</section>
+</Base>
